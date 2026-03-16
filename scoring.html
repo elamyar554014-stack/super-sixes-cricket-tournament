@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Admin Live Scoring</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#061f17;
+color:white;
+text-align:center;
+margin:0;
+}
+
+header{
+background:black;
+padding:15px;
+color:gold;
+font-size:22px;
+}
+
+.container{
+width:90%;
+max-width:800px;
+margin:auto;
+margin-top:30px;
+}
+
+.card{
+background:#0d3b2e;
+padding:20px;
+margin:15px 0;
+border-radius:8px;
+}
+
+input{
+width:90%;
+padding:10px;
+margin:6px;
+border:none;
+border-radius:6px;
+}
+
+button{
+padding:12px 20px;
+background:gold;
+border:none;
+border-radius:6px;
+font-weight:bold;
+cursor:pointer;
+}
+
+button:hover{
+background:#ffd700;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+🏏 ADMIN MATCH RESULT PANEL
+</header>
+
+<div class="container">
+
+<div class="card">
+
+<h3>Team A</h3>
+
+<input id="teamA" placeholder="Team A Name">
+<input id="scoreA" placeholder="Runs">
+<input id="oversA" placeholder="Overs Played">
+
+</div>
+
+<div class="card">
+
+<h3>Team B</h3>
+
+<input id="teamB" placeholder="Team B Name">
+<input id="scoreB" placeholder="Runs">
+<input id="oversB" placeholder="Overs Played">
+
+</div>
+
+<div class="card">
+
+<button onclick="saveMatch()">Save Match Result</button>
+<button onclick="undoMatch()">Undo Last Match</button>
+
+<p id="msg"></p>
+
+</div>
+
+</div>
+
+<script>
+
+/* ADMIN PASSWORD */
+
+let pass=prompt("Enter Admin Password")
+
+if(pass!=="samikhan782"){
+
+alert("Access Denied")
+
+window.location="index.html"
+
+}
+
+/* SAVE MATCH */
+
+function saveMatch(){
+
+let teamA=document.getElementById("teamA").value
+let teamB=document.getElementById("teamB").value
+
+let scoreA=parseInt(document.getElementById("scoreA").value)
+let scoreB=parseInt(document.getElementById("scoreB").value)
+
+let oversA=parseFloat(document.getElementById("oversA").value)
+let oversB=parseFloat(document.getElementById("oversB").value)
+
+let matches=JSON.parse(localStorage.getItem("matches")) || []
+
+let match={
+
+teamA:teamA,
+teamB:teamB,
+scoreA:scoreA,
+scoreB:scoreB,
+oversA:oversA,
+oversB:oversB
+
+}
+
+matches.push(match)
+
+localStorage.setItem("matches",JSON.stringify(matches))
+
+document.getElementById("msg").innerText="Match Saved Successfully"
+
+}
+
+/* UNDO MATCH */
+
+function undoMatch(){
+
+let matches=JSON.parse(localStorage.getItem("matches")) || []
+
+matches.pop()
+
+localStorage.setItem("matches",JSON.stringify(matches))
+
+alert("Last match removed")
+
+}
+
+</script>
+
+</body>
+</html>

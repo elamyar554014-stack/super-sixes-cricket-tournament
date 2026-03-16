@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Admin Panel</title>
+
+<style>
+
+body{
+margin:0;
+font-family:Arial;
+background:#061f17;
+color:white;
+text-align:center;
+}
+
+header{
+background:black;
+padding:15px;
+color:gold;
+font-size:22px;
+}
+
+.container{
+width:90%;
+max-width:1000px;
+margin:auto;
+margin-top:20px;
+}
+
+.card{
+background:#0d3b2e;
+padding:20px;
+border-radius:10px;
+margin:20px 0;
+}
+
+input{
+padding:8px;
+margin:4px;
+border:none;
+border-radius:5px;
+}
+
+button{
+padding:8px 12px;
+margin:4px;
+border:none;
+border-radius:5px;
+background:gold;
+cursor:pointer;
+font-weight:bold;
+}
+
+button:hover{
+background:#ffd700;
+}
+
+.players{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+gap:5px;
+margin-top:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+🔐 ADMIN PANEL
+</header>
+
+<div class="container" id="login">
+
+<h2>Enter Admin Password</h2>
+
+<input type="password" id="password" placeholder="Password">
+
+<br><br>
+
+<button onclick="login()">Login</button>
+
+<p id="msg"></p>
+
+</div>
+
+<div class="container" id="adminPanel" style="display:none">
+
+<h2>Manage Teams</h2>
+
+<div id="teams"></div>
+
+</div>
+
+<script>
+
+function login(){
+
+let pass=document.getElementById("password").value
+
+if(pass==="samikhan782"){
+
+document.getElementById("login").style.display="none"
+document.getElementById("adminPanel").style.display="block"
+
+loadTeams()
+
+}
+
+else{
+
+msg.innerText="Wrong Password"
+
+}
+
+}
+
+function loadTeams(){
+
+let teams=JSON.parse(localStorage.getItem("teams")) || []
+
+let container=document.getElementById("teams")
+
+container.innerHTML=""
+
+teams.forEach((team,index)=>{
+
+let playersHTML=""
+
+team.players.forEach((p,i)=>{
+
+playersHTML+=`<input value="${p}" id="p${index}_${i}">`
+
+})
+
+let card=document.createElement("div")
+
+card.className="card"
+
+card.innerHTML=`
+
+<h3>${team.teamName}</h3>
+
+Captain:<br>
+<input id="captain${index}" value="${team.captain}">
+
+<br>
+
+Vice Captain:<br>
+<input id="vice${index}" value="${team.viceCaptain}">
+
+<br>
+
+Contact:<br>
+<input id="contact${index}" value="${team.contact}">
+
+<h4>Squad</h4>
+
+<div class="players">
+
+${playersHTML}
+
+</div>
+
+<br>
+
+<button onclick="saveTeam(${index})">Save Changes</button>
+
+<button onclick="deleteTeam(${index})">Delete Team</button>
+
+`
+
+container.appendChild(card)
+
+})
+
+}
+
+function saveTeam(index){
+
+let teams=JSON.parse(localStorage.getItem("teams")) || []
+
+teams[index].captain=document.getElementById("captain"+index).value
+teams[index].viceCaptain=document.getElementById("vice"+index).value
+teams[index].contact=document.getElementById("contact"+index).value
+
+for(let i=0;i<16;i++){
+
+teams[index].players[i]=document.getElementById(`p${index}_${i}`).value
+
+}
+
+localStorage.setItem("teams",JSON.stringify(teams))
+
+alert("Team Updated")
+
+}
+
+function deleteTeam(index){
+
+let teams=JSON.parse(localStorage.getItem("teams")) || []
+
+if(confirm("Delete this team?")){
+
+teams.splice(index,1)
+
+localStorage.setItem("teams",JSON.stringify(teams))
+
+loadTeams()
+
+}
+
+}
+
+</script>
+
+</body>
+
+</html>

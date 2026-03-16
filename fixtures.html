@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fixtures</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h2>Fixtures</h2>
+
+<button onclick="generate()">Generate Fixtures</button>
+
+<div id="fixtures"></div>
+
+<script>
+
+function generate(){
+
+let teams=JSON.parse(localStorage.getItem("teams")) || []
+
+teams.sort(()=>Math.random()-0.5)
+
+let container=document.getElementById("fixtures")
+
+container.innerHTML=""
+
+for(let i=0;i<teams.length;i+=2){
+
+if(teams[i+1]){
+
+let match=document.createElement("div")
+
+match.className="card"
+
+match.innerHTML=`${teams[i].teamName} VS ${teams[i+1].teamName}`
+
+container.appendChild(match)
+
+}
+
+}
+
+}
+
+</script>
+
+</body>
+</html>

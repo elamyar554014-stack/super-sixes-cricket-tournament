@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Registered Teams</title>
+<link rel="stylesheet" href="style.css">
+
+<style>
+
+.team-card{
+background:#145a32;
+padding:20px;
+margin:20px auto;
+width:80%;
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,0.4);
+}
+
+.team-header{
+display:flex;
+align-items:center;
+gap:20px;
+margin-bottom:15px;
+}
+
+.team-header img{
+width:80px;
+height:80px;
+border-radius:50%;
+}
+
+.team-info h2{
+margin:0;
+color:gold;
+}
+
+.squad-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+gap:10px;
+margin-top:15px;
+}
+
+.player-box{
+background:#0b3d2e;
+padding:10px;
+border-radius:6px;
+font-size:14px;
+}
+
+.player-box span{
+color:gold;
+font-weight:bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>🏏 Registered Teams</h1>
+
+<div id="teamsContainer"></div>
+
+<script>
+
+let teams = JSON.parse(localStorage.getItem("teams")) || [];
+
+let container = document.getElementById("teamsContainer");
+
+teams.forEach(team => {
+
+let playersHTML = "";
+
+team.players.forEach((player,index)=>{
+
+playersHTML += `
+<div class="player-box">
+<span>${index+1}.</span> ${player}
+</div>
+`;
+
+});
+
+let card = document.createElement("div");
+card.className="team-card";
+
+card.innerHTML = `
+
+<div class="team-header">
+
+<img src="${team.logo}">
+
+<div class="team-info">
+<h2>${team.teamName}</h2>
+<p><b>Captain:</b> ${team.captain}</p>
+<p><b>Vice Captain:</b> ${team.viceCaptain}</p>
+<p><b>Contact:</b> ${team.contact}</p>
+</div>
+
+</div>
+
+<h3>Squad</h3>
+
+<div class="squad-grid">
+${playersHTML}
+</div>
+
+`;
+
+container.appendChild(card);
+
+});
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>SUPER SIXES CRICKET TOURNAMENT</title>
+
+<link rel="stylesheet" href="style.css">
+
+<style>
+
+body{
+margin:0;
+font-family:Arial;
+background:#061f17;
+color:white;
+}
+
+header{
+background:black;
+padding:15px 30px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.logo{
+color:gold;
+font-size:22px;
+font-weight:bold;
+}
+
+nav a{
+color:white;
+text-decoration:none;
+margin-left:20px;
+font-weight:bold;
+}
+
+nav a:hover{
+color:gold;
+}
+
+.hero{
+height:80vh;
+background:linear-gradient(rgba(0,0,0,.6),rgba(0,0,0,.6)),
+url("https://images.unsplash.com/photo-1593341646782-e0b495cff86d");
+background-size:cover;
+background-position:center;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+text-align:center;
+}
+
+.hero h1{
+font-size:55px;
+color:gold;
+margin-bottom:10px;
+}
+
+.hero p{
+font-size:18px;
+margin-bottom:30px;
+}
+
+.hero button{
+padding:15px 30px;
+background:gold;
+border:none;
+border-radius:6px;
+font-weight:bold;
+cursor:pointer;
+}
+
+.hero button:hover{
+background:#ffd700;
+}
+
+.features{
+padding:60px 10%;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:25px;
+}
+
+.card{
+background:#0d3b2e;
+padding:25px;
+border-radius:10px;
+text-align:center;
+transition:0.3s;
+}
+
+.card:hover{
+transform:translateY(-5px);
+}
+
+.card h3{
+color:gold;
+}
+
+footer{
+text-align:center;
+padding:20px;
+background:black;
+margin-top:40px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+<div class="logo">🏏 SUPER SIXES</div>
+
+<nav>
+
+<a href="register.html">Register</a>
+<a href="teams.html">Teams</a>
+<a href="fixtures.html">Fixtures</a>
+<a href="points.html">Points Table</a>
+<a href="scoring.html">Live Score</a>
+<a href="admin.html">Admin</a>
+
+</nav>
+
+</header>
+
+
+<section class="hero">
+
+<h1>SUPER SIXES CRICKET TOURNAMENT</h1>
+
+<p>The Ultimate Local Cricket League</p>
+
+<button onclick="location.href='register.html'">
+Register Your Team
+</button>
+
+</section>
+
+
+<section class="features">
+
+<div class="card">
+<h3>🏏 Team Registration</h3>
+<p>Register your cricket team and enter the tournament.</p>
+</div>
+
+<div class="card">
+<h3>📋 Fixtures</h3>
+<p>View automatic tournament fixtures and brackets.</p>
+</div>
+
+<div class="card">
+<h3>📊 Points Table</h3>
+<p>Track team rankings and match results.</p>
+</div>
+
+<div class="card">
+<h3>📡 Live Scoring</h3>
+<p>Follow matches with live score updates.</p>
+</div>
+
+</section>
+
+
+<footer>
+
+<p>© 2026 SUPER SIXES CRICKET TOURNAMENT</p>
+
+</footer>
+
+</body>
+
+</html>

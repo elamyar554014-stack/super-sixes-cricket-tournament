@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Points Table</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#061f17;
+color:white;
+text-align:center;
+}
+
+header{
+background:black;
+padding:15px;
+color:gold;
+font-size:22px;
+}
+
+table{
+width:90%;
+margin:auto;
+margin-top:30px;
+border-collapse:collapse;
+}
+
+th,td{
+padding:10px;
+border:1px solid #333;
+}
+
+th{
+background:#0d3b2e;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+🏏 SUPER SIXES POINTS TABLE
+</header>
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Team</th>
+<th>Matches</th>
+<th>Wins</th>
+<th>Loss</th>
+<th>Points</th>
+<th>NRR</th>
+
+</tr>
+
+</thead>
+
+<tbody id="pointsTable"></tbody>
+
+</table>
+
+<script>
+
+let matches=JSON.parse(localStorage.getItem("matches")) || []
+
+let teams={}
+
+/* CALCULATE TABLE */
+
+matches.forEach(match=>{
+
+if(!teams[match.teamA]){
+
+teams[match.teamA]={
+
+matches:0,
+wins:0,
+loss:0,
+runsFor:0,
+runsAgainst:0,
+oversFor:0,
+oversAgainst:0
+
+}
+
+}
+
+if(!teams[match.teamB]){
+
+teams[match.teamB]={
+
+matches:0,
+wins:0,
+loss:0,
+runsFor:0,
+runsAgainst:0,
+oversFor:0,
+oversAgainst:0
+
+}
+
+}
+
+teams[match.teamA].matches++
+teams[match.teamB].matches++
+
+teams[match.teamA].runsFor+=match.scoreA
+teams[match.teamA].runsAgainst+=match.scoreB
+teams[match.teamA].oversFor+=match.oversA
+teams[match.teamA].oversAgainst+=match.oversB
+
+teams[match.teamB].runsFor+=match.scoreB
+teams[match.teamB].runsAgainst+=match.scoreA
+teams[match.teamB].oversFor+=match.oversB
+teams[match.teamB].oversAgainst+=match.oversA
+
+if(match.scoreA>match.scoreB){
+
+teams[match.teamA].wins++
+teams[match.teamB].loss++
+
+}
+
+else if(match.scoreB>match.scoreA){
+
+teams[match.teamB].wins++
+teams[match.teamA].loss++
+
+}
+
+})
+
+/* DISPLAY TABLE */
+
+let table=document.getElementById("pointsTable")
+
+for(let team in teams){
+
+let t=teams[team]
+
+let points=t.wins*2
+
+let runRateFor=t.runsFor/t.oversFor
+let runRateAgainst=t.runsAgainst/t.oversAgainst
+
+let nrr=(runRateFor-runRateAgainst).toFixed(2)
+
+table.innerHTML+=`
+
+<tr>
+
+<td>${team}</td>
+<td>${t.matches}</td>
+<td>${t.wins}</td>
+<td>${t.loss}</td>
+<td>${points}</td>
+<td>${nrr}</td>
+
+</tr>
+
+`
+
+}
+
+</script>
+
+</body>
+
+</html>
