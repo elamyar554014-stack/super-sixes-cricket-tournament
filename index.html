@@ -8,107 +8,246 @@
 
 <title>SUPER SIXES CRICKET TOURNAMENT</title>
 
-<link rel="stylesheet" href="style.css">
-
 <style>
 
-body{
+*{
 margin:0;
-font-family:Arial;
-background:#061f17;
-color:white;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
 }
 
+body{
+background:#071a14;
+color:white;
+overflow-x:hidden;
+}
+
+/* HEADER */
+
 header{
-background:black;
-padding:15px 30px;
+width:100%;
+padding:18px 8%;
 display:flex;
 justify-content:space-between;
 align-items:center;
+background:rgba(0,0,0,0.75);
+backdrop-filter:blur(10px);
+position:fixed;
+top:0;
+z-index:1000;
 }
 
 .logo{
-color:gold;
-font-size:22px;
+font-size:30px;
 font-weight:bold;
+color:gold;
+letter-spacing:1px;
 }
 
-nav a{
+/* MENU BUTTON */
+
+.menu-btn{
+font-size:34px;
+cursor:pointer;
+transition:0.3s;
+}
+
+.menu-btn:hover{
+color:gold;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+position:fixed;
+top:0;
+right:-320px;
+width:300px;
+height:100vh;
+background:#0d2d23;
+padding-top:80px;
+transition:0.4s;
+z-index:2000;
+overflow-y:auto;
+box-shadow:-5px 0 20px rgba(0,0,0,0.5);
+}
+
+.sidebar.active{
+right:0;
+}
+
+.sidebar a{
+display:block;
+padding:18px 30px;
 color:white;
 text-decoration:none;
-margin-left:20px;
+font-size:18px;
 font-weight:bold;
+border-bottom:1px solid rgba(255,255,255,0.08);
+transition:0.3s;
 }
 
-nav a:hover{
-color:gold;
+.sidebar a:hover{
+background:gold;
+color:black;
+padding-left:40px;
 }
+
+.close-btn{
+position:absolute;
+top:15px;
+right:25px;
+font-size:40px;
+cursor:pointer;
+}
+
+/* HERO */
 
 .hero{
-height:80vh;
-background:linear-gradient(rgba(0,0,0,.6),rgba(0,0,0,.6)),
-url("https://images.unsplash.com/photo-1593341646782-e0b495cff86d");
+height:100vh;
+background:
+linear-gradient(rgba(0,0,0,0.7),rgba(0,0,0,0.7)),
+url("https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=1500&q=80");
+
 background-size:cover;
 background-position:center;
+
 display:flex;
 flex-direction:column;
 justify-content:center;
 align-items:center;
 text-align:center;
+padding:20px;
 }
 
 .hero h1{
-font-size:55px;
+font-size:70px;
 color:gold;
-margin-bottom:10px;
+margin-bottom:15px;
+text-shadow:0 0 20px rgba(255,215,0,0.4);
 }
 
 .hero p{
-font-size:18px;
-margin-bottom:30px;
+font-size:20px;
+max-width:800px;
+line-height:1.8;
+margin-bottom:35px;
+color:#f1f1f1;
 }
 
 .hero button{
-padding:15px 30px;
-background:gold;
+padding:16px 38px;
 border:none;
-border-radius:6px;
+border-radius:50px;
+background:gold;
+font-size:18px;
 font-weight:bold;
 cursor:pointer;
+transition:0.3s;
+box-shadow:0 6px 18px rgba(255,215,0,0.4);
 }
 
 .hero button:hover{
-background:#ffd700;
+background:white;
+transform:translateY(-4px);
 }
 
+/* OWNER SECTION */
+
+.owner-section{
+padding:70px 8%;
+background:#081f18;
+text-align:center;
+}
+
+.owner-box{
+background:#102d24;
+padding:40px;
+border-radius:20px;
+max-width:700px;
+margin:auto;
+box-shadow:0 10px 25px rgba(0,0,0,0.4);
+border:1px solid rgba(255,215,0,0.1);
+}
+
+.owner-box h2{
+color:gold;
+font-size:38px;
+margin-bottom:15px;
+}
+
+.owner-box p{
+font-size:18px;
+line-height:1.8;
+color:#ddd;
+}
+
+/* FEATURES */
+
 .features{
-padding:60px 10%;
+padding:90px 8%;
 display:grid;
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-gap:25px;
+grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+gap:30px;
+background:#071a14;
 }
 
 .card{
-background:#0d3b2e;
-padding:25px;
-border-radius:10px;
+background:#102d24;
+padding:35px 25px;
+border-radius:20px;
 text-align:center;
-transition:0.3s;
+transition:0.4s;
+border:1px solid rgba(255,215,0,0.1);
 }
 
 .card:hover{
-transform:translateY(-5px);
+transform:translateY(-10px);
+box-shadow:0 10px 25px rgba(0,0,0,0.5);
 }
 
 .card h3{
 color:gold;
+font-size:24px;
+margin-bottom:15px;
 }
 
+.card p{
+line-height:1.8;
+color:#d9d9d9;
+}
+
+/* FOOTER */
+
 footer{
-text-align:center;
-padding:20px;
 background:black;
-margin-top:40px;
+padding:25px;
+text-align:center;
+font-size:15px;
+color:#aaa;
+}
+
+/* RESPONSIVE */
+
+@media(max-width:768px){
+
+.hero h1{
+font-size:42px;
+}
+
+.hero p{
+font-size:16px;
+}
+
+.sidebar{
+width:260px;
+}
+
+.owner-box h2{
+font-size:30px;
+}
+
 }
 
 </style>
@@ -117,29 +256,49 @@ margin-top:40px;
 
 <body>
 
+<!-- HEADER -->
+
 <header>
 
 <div class="logo">🏏 SUPER SIXES</div>
 
-<nav>
-
-<a href="register.html">Register</a>
-<a href="teams.html">Teams</a>
-<a href="fixtures.html">Fixtures</a>
-<a href="points.html">Points Table</a>
-<a href="scoring.html">Live Score</a>
-<a href="admin.html">Admin</a>
-
-</nav>
+<div class="menu-btn" onclick="openMenu()">☰</div>
 
 </header>
 
+<!-- SIDEBAR MENU -->
+
+<div class="sidebar" id="sidebar">
+
+<div class="close-btn" onclick="closeMenu()">×</div>
+
+<a href="register.html">🏏 Register Team</a>
+
+<a href="teams.html">👥 Registered Teams</a>
+
+<a href="squads.html">🛡 Team Squads</a>
+
+<a href="fixtures.html">📋 Fixtures</a>
+
+<a href="points.html">📊 Points Table</a>
+
+<a href="scoring.html">📡 Live Score</a>
+
+<a href="admin.html">⚙ Admin Panel</a>
+
+</div>
+
+<!-- HERO SECTION -->
 
 <section class="hero">
 
 <h1>SUPER SIXES CRICKET TOURNAMENT</h1>
 
-<p>The Ultimate Local Cricket League</p>
+<p>
+Experience the ultimate local cricket tournament with live scoring,
+team squads, exciting fixtures, and real-time points table updates.
+Join the competition and become champions.
+</p>
 
 <button onclick="location.href='register.html'">
 Register Your Team
@@ -147,37 +306,117 @@ Register Your Team
 
 </section>
 
+<!-- OWNER SECTION -->
 
-<section class="features">
+<section class="owner-section">
 
-<div class="card">
-<h3>🏏 Team Registration</h3>
-<p>Register your cricket team and enter the tournament.</p>
-</div>
+<div class="owner-box">
 
-<div class="card">
-<h3>📋 Fixtures</h3>
-<p>View automatic tournament fixtures and brackets.</p>
-</div>
+<h2>🏟 Ground Owner</h2>
 
-<div class="card">
-<h3>📊 Points Table</h3>
-<p>Track team rankings and match results.</p>
-</div>
+<p>
+This cricket tournament is proudly organized and managed under the
+leadership of <b style="color:gold;">Sami Yasinzai</b>,
+providing players and cricket lovers a professional and exciting
+local cricket experience.
+</p>
 
-<div class="card">
-<h3>📡 Live Scoring</h3>
-<p>Follow matches with live score updates.</p>
 </div>
 
 </section>
 
+<!-- FEATURES -->
+
+<section class="features">
+
+<div class="card">
+
+<h3>🏏 Team Registration</h3>
+
+<p>
+Register your cricket team online and participate in the biggest
+Super Sixes tournament.
+</p>
+
+</div>
+
+<div class="card">
+
+<h3>👥 Registered Teams</h3>
+
+<p>
+View all registered teams with logos, captain names,
+and tournament status.
+</p>
+
+</div>
+
+<div class="card">
+
+<h3>🛡 Team Squads</h3>
+
+<p>
+See complete player squads and team lineups with logos
+and player information.
+</p>
+
+</div>
+
+<div class="card">
+
+<h3>📋 Match Fixtures</h3>
+
+<p>
+Check automatic tournament fixtures and upcoming match schedules.
+</p>
+
+</div>
+
+<div class="card">
+
+<h3>📊 Points Table</h3>
+
+<p>
+Track rankings, wins, losses, and net run rate updates live.
+</p>
+
+</div>
+
+<div class="card">
+
+<h3>📡 Live Scoring</h3>
+
+<p>
+Follow live cricket scores and every exciting moment of the matches.
+</p>
+
+</div>
+
+</section>
+
+<!-- FOOTER -->
 
 <footer>
 
-<p>© 2026 SUPER SIXES CRICKET TOURNAMENT</p>
+<p>
+© 2026 SUPER SIXES CRICKET TOURNAMENT | Managed by Sami Yasinzai
+</p>
 
 </footer>
+
+<!-- JAVASCRIPT -->
+
+<script>
+
+function openMenu(){
+document.getElementById("sidebar").classList.add("active");
+}
+
+function closeMenu(){
+document.getElementById("sidebar").classList.remove("active");
+}
+
+</script>
 
 </body>
 
