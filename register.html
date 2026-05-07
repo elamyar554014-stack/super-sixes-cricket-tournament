@@ -2,99 +2,64 @@
 <html lang="en">
 
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Team Registration</title>
-
-<link rel="stylesheet" href="style.css">
 
 <style>
 
 body{
-background:#061f17;
-font-family:Arial;
-color:white;
 margin:0;
+font-family:Arial;
+background:#071a14;
+color:white;
 }
 
 .container{
-width:90%;
 max-width:900px;
 margin:auto;
-padding:30px;
+padding:20px;
 }
 
-.title{
+h1{
 text-align:center;
 color:gold;
-margin-bottom:30px;
-}
-
-.form-card{
-background:#0d3b2e;
-padding:30px;
-border-radius:10px;
+margin-bottom:20px;
 }
 
 input{
 width:100%;
 padding:12px;
-margin:10px 0;
-border-radius:6px;
+margin:8px 0;
 border:none;
-}
-
-label{
-font-weight:bold;
-}
-
-.logo-preview{
-text-align:center;
-margin-top:10px;
-}
-
-.logo-preview img{
-width:100px;
-height:100px;
-border-radius:50%;
-object-fit:cover;
-border:2px solid gold;
-}
-
-.squad-grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
-gap:10px;
-margin-top:20px;
-}
-
-.player-box{
-background:#08291f;
-padding:10px;
 border-radius:6px;
+outline:none;
 }
 
 button{
-width:100%;
-padding:15px;
+padding:12px 20px;
 background:gold;
 border:none;
-border-radius:6px;
 font-weight:bold;
-margin-top:20px;
 cursor:pointer;
+border-radius:6px;
+margin-top:10px;
+width:100%;
 }
 
 button:hover{
-background:#ffd700;
+background:white;
 }
 
-.success{
+.player-box{
+margin:5px 0;
+}
+
+#msg{
 text-align:center;
 margin-top:15px;
 color:lightgreen;
+font-weight:bold;
 }
 
 </style>
@@ -105,123 +70,128 @@ color:lightgreen;
 
 <div class="container">
 
-<h1 class="title">🏏 Team Registration</h1>
+<h1>🏏 Team Registration</h1>
 
-<div class="form-card">
+<input id="teamName" placeholder="Team Name">
+<input id="captain" placeholder="Captain Name">
+<input id="viceCaptain" placeholder="Vice Captain Name">
+<input id="contact" placeholder="Contact Number">
 
-<label>Team Name</label>
-<input id="teamName" placeholder="Enter Team Name">
+<input type="file" id="logo">
+<img id="preview" style="display:none;width:120px;margin-top:10px;border-radius:10px;">
 
-<label>Captain Name</label>
-<input id="captain" placeholder="Enter Captain Name">
-
-<label>Vice Captain Name</label>
-<input id="viceCaptain" placeholder="Enter Vice Captain Name">
-
-<label>Contact Number</label>
-<input id="contact" placeholder="Enter Contact Number">
-
-<label>Team Logo</label>
-<input type="file" id="logo" accept="image/*" onchange="previewLogo(event)">
-
-<div class="logo-preview">
-<img id="logoPreview" src="" style="display:none;">
-</div>
-
-<h3>Squad (16 Players)</h3>
-
-<div class="squad-grid" id="players"></div>
+<h3>Players</h3>
+<div id="players"></div>
 
 <button onclick="registerTeam()">Register Team</button>
 
-<p class="success" id="msg"></p>
+<div id="msg"></div>
 
 </div>
-
-</div>
-
 
 <script>
 
-let playersDiv=document.getElementById("players")
+document.addEventListener("DOMContentLoaded", function () {
 
-for(let i=1;i<=16;i++){
+const playersDiv = document.getElementById("players");
 
-let box=document.createElement("div")
-box.className="player-box"
+// CREATE 16 PLAYER INPUTS
+let html = "";
+for (let i = 1; i <= 16; i++) {
+    html += `
+    <div class="player-box">
+        <input type="text" id="p${i}" placeholder="Player ${i}">
+    </div>`;
+}
+playersDiv.innerHTML = html;
 
-box.innerHTML=`<input placeholder="Player ${i}" id="p${i}">`
+// LOGO PREVIEW
+document.getElementById("logo").addEventListener("change", function (event) {
 
-playersDiv.appendChild(box)
+const file = event.target.files[0];
+if (!file) return;
 
+const reader = new FileReader();
+
+reader.onload = function (e) {
+    const preview = document.getElementById("preview");
+    preview.src = e.target.result;
+    preview.style.display = "block";
+};
+
+reader.readAsDataURL(file);
+
+});
+
+// REGISTER FUNCTION
+window.registerTeam = function () {
+
+const teamName = document.getElementById("teamName").value.trim();
+const captain = document.getElementById("captain").value.trim();
+const viceCaptain = document.getElementById("viceCaptain").value.trim();
+const contact = document.getElementById("contact").value.trim();
+
+if (!teamName) {
+    alert("Enter Team Name");
+    return;
 }
 
+let teams = JSON.parse(localStorage.getItem("teams") || "[]");
 
-function previewLogo(event){
+// CHECK DUPLICATE
+let exists = teams.some(
+    t => (t.teamName || "").toLowerCase() === teamName.toLowerCase()
+);
 
-let reader=new FileReader()
-
-reader.onload=function(){
-
-let img=document.getElementById("logoPreview")
-
-img.src=reader.result
-img.style.display="block"
-
+if (exists) {
+    alert("Team already exists!");
+    return;
 }
 
-reader.readAsDataURL(event.target.files[0])
-
+// GET PLAYERS
+let players = [];
+for (let i = 1; i <= 16; i++) {
+    players.push(document.getElementById("p" + i).value.trim());
 }
 
+// LOGO CHECK
+const file = document.getElementById("logo").files[0];
 
-function registerTeam(){
-
-let players=[]
-
-for(let i=1;i<=16;i++){
-
-players.push(document.getElementById("p"+i).value)
-
+if (!file) {
+    alert("Select Team Logo");
+    return;
 }
 
-let logoFile=document.getElementById("logo").files[0]
+const reader = new FileReader();
 
-let reader=new FileReader()
+reader.onload = function (e) {
 
-reader.onload=function(){
+let team = {
+    teamName,
+    captain,
+    viceCaptain,
+    contact,
+    players,
+    logo: e.target.result
+};
 
-let team={
+teams.push(team);
+localStorage.setItem("teams", JSON.stringify(teams));
 
-teamName:teamName.value,
-captain:captain.value,
-viceCaptain:viceCaptain.value,
-contact:contact.value,
-logo:reader.result,
-players:players
+document.getElementById("msg").innerText =
+"Team Registered Successfully!";
 
-}
+setTimeout(() => location.reload(), 1200);
 
-let teams=JSON.parse(localStorage.getItem("teams")) || []
+};
 
-teams.push(team)
+reader.readAsDataURL(file);
 
-localStorage.setItem("teams",JSON.stringify(teams))
+};
 
-msg.innerText="Your team has been successfully registered in SUPER SIXES CRICKET TOURNAMENT."
-
-}
-
-if(logoFile){
-
-reader.readAsDataURL(logoFile)
-
-}
-
-}
+});
 
 </script>
 
 </body>
-
 </html>
