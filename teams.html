@@ -95,7 +95,7 @@ font-size:15px;
 color:#ddd;
 }
 
-/* SQUAD SECTION */
+/* SQUAD */
 
 .squad-title{
 margin-top:15px;
@@ -135,6 +135,15 @@ color:gold;
 margin-top:80px;
 }
 
+/* DEBUG */
+
+.debug{
+text-align:center;
+color:red;
+margin-bottom:20px;
+font-size:14px;
+}
+
 </style>
 
 </head>
@@ -151,15 +160,27 @@ margin-top:80px;
 
 </div>
 
+<!-- DEBUG MESSAGE (helps detect wrong page opening) -->
+<div id="debug" class="debug"></div>
+
 <!-- TEAMS -->
 
 <div class="teams-container" id="teamsContainer"></div>
 
 <script>
 
+/* SHOW PAGE LOADED CONFIRMATION */
+document.getElementById("debug").innerText = "Teams page loaded successfully ✔";
+
+/* LOAD TEAMS */
 function loadTeams(){
 
 let container = document.getElementById("teamsContainer");
+
+if(!container){
+    console.error("Container missing");
+    return;
+}
 
 let teams = [];
 
@@ -180,7 +201,7 @@ teams.forEach(team => {
 
 let playersHTML = "";
 
-// BUILD SQUAD LIST
+/* SAFE SQUAD BUILD */
 if (Array.isArray(team.players)) {
     team.players.forEach((p, i) => {
         if (p && p.trim() !== "") {
@@ -232,6 +253,7 @@ container.innerHTML += `
 
 }
 
+/* RUN */
 loadTeams();
 
 </script>
