@@ -1,67 +1,157 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
 
-<title>Admin Panel</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Admin Panel | Super Sixes</title>
 
 <style>
 
 body{
 margin:0;
-font-family:Arial;
-background:#061f17;
+font-family:Arial, sans-serif;
+background:linear-gradient(135deg,#04140f,#06261c);
 color:white;
-text-align:center;
 }
 
+/* HEADER */
+
 header{
-background:black;
-padding:15px;
+background:rgba(0,0,0,0.6);
+backdrop-filter:blur(10px);
+padding:18px;
+text-align:center;
+font-size:24px;
 color:gold;
-font-size:22px;
+font-weight:bold;
 }
+
+/* CONTAINER */
 
 .container{
 width:90%;
-max-width:1000px;
+max-width:1100px;
 margin:auto;
-margin-top:20px;
+padding:20px;
 }
 
-.card{
-background:#0d3b2e;
-padding:20px;
-border-radius:10px;
-margin:20px 0;
+/* LOGIN BOX */
+
+#login{
+text-align:center;
+margin-top:100px;
 }
 
 input{
-padding:8px;
-margin:4px;
+padding:12px;
+margin:8px;
+width:260px;
 border:none;
-border-radius:5px;
+border-radius:8px;
+outline:none;
 }
 
 button{
-padding:8px 12px;
-margin:4px;
-border:none;
-border-radius:5px;
+padding:10px 18px;
 background:gold;
-cursor:pointer;
+border:none;
+border-radius:8px;
 font-weight:bold;
+cursor:pointer;
+transition:0.3s;
 }
 
 button:hover{
 background:#ffd700;
+transform:scale(1.05);
 }
+
+#msg{
+color:red;
+font-weight:bold;
+}
+
+/* GRID */
+
+#teams{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+gap:20px;
+margin-top:20px;
+}
+
+/* CARD */
+
+.card{
+background:rgba(255,255,255,0.06);
+backdrop-filter:blur(12px);
+border:1px solid rgba(255,215,0,0.2);
+padding:20px;
+border-radius:15px;
+transition:0.3s;
+}
+
+.card:hover{
+transform:translateY(-5px);
+box-shadow:0 10px 20px rgba(0,0,0,0.4);
+}
+
+/* TITLE */
+
+.card h3{
+color:gold;
+margin-bottom:10px;
+}
+
+/* INPUTS */
+
+.card input{
+width:100%;
+padding:10px;
+margin:5px 0;
+border-radius:6px;
+border:none;
+}
+
+/* PLAYERS GRID */
 
 .players{
 display:grid;
 grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
 gap:5px;
 margin-top:10px;
+}
+
+/* BUTTON GROUP */
+
+.btn-group{
+display:flex;
+justify-content:space-between;
+margin-top:10px;
+gap:10px;
+}
+
+.btn-group button{
+flex:1;
+}
+
+/* HIDE */
+
+.hidden{
+display:none;
+}
+
+/* RESPONSIVE */
+
+@media(max-width:600px){
+
+input{
+width:90%;
+}
+
 }
 
 </style>
@@ -71,16 +161,18 @@ margin-top:10px;
 <body>
 
 <header>
-🔐 ADMIN PANEL
+🔐 SUPER SIXES ADMIN PANEL
 </header>
 
-<div class="container" id="login">
+<!-- LOGIN -->
 
-<h2>Enter Admin Password</h2>
+<div id="login">
 
-<input type="password" id="password" placeholder="Password">
+<h2>Admin Login</h2>
 
-<br><br>
+<input type="password" id="password" placeholder="Enter Password">
+
+<br>
 
 <button onclick="login()">Login</button>
 
@@ -88,9 +180,11 @@ margin-top:10px;
 
 </div>
 
-<div class="container" id="adminPanel" style="display:none">
+<!-- PANEL -->
 
-<h2>Manage Teams</h2>
+<div class="container hidden" id="adminPanel">
+
+<h2 style="text-align:center;color:gold;">Registered Teams</h2>
 
 <div id="teams"></div>
 
@@ -98,117 +192,134 @@ margin-top:10px;
 
 <script>
 
+/* LOGIN */
+
 function login(){
 
-let pass=document.getElementById("password").value
+let pass = document.getElementById("password").value
 
-if(pass==="samikhan782"){
+if(pass === "samikhan782"){
 
-document.getElementById("login").style.display="none"
-document.getElementById("adminPanel").style.display="block"
+document.getElementById("login").classList.add("hidden")
+document.getElementById("adminPanel").classList.remove("hidden")
 
 loadTeams()
 
-}
+}else{
 
-else{
-
-msg.innerText="Wrong Password"
+document.getElementById("msg").innerText = "❌ Wrong Password"
 
 }
 
 }
+
+/* LOAD TEAMS */
 
 function loadTeams(){
 
-let teams=JSON.parse(localStorage.getItem("teams")) || []
+let teams = JSON.parse(localStorage.getItem("teams")) || []
 
-let container=document.getElementById("teams")
+let container = document.getElementById("teams")
 
-container.innerHTML=""
+container.innerHTML = ""
+
+if(teams.length === 0){
+
+container.innerHTML = "<h3 style='text-align:center;'>No Teams Registered Yet</h3>"
+return
+
+}
 
 teams.forEach((team,index)=>{
 
-let playersHTML=""
+let playersHTML = ""
 
-team.players.forEach((p,i)=>{
+let players = team.players || []
 
-playersHTML+=`<input value="${p}" id="p${index}_${i}">`
+players.forEach((p,i)=>{
+
+playersHTML += `
+<input id="p${index}_${i}" value="${p || ''}">
+`
 
 })
 
-let card=document.createElement("div")
+container.innerHTML += `
 
-card.className="card"
+<div class="card">
 
-card.innerHTML=`
+<h3>${team.teamName || "Unknown Team"}</h3>
 
-<h3>${team.teamName}</h3>
+<label>Captain</label>
+<input id="captain${index}" value="${team.captain || ''}">
 
-Captain:<br>
-<input id="captain${index}" value="${team.captain}">
+<label>Vice Captain</label>
+<input id="vice${index}" value="${team.viceCaptain || ''}">
 
-<br>
+<label>Contact</label>
+<input id="contact${index}" value="${team.contact || ''}">
 
-Vice Captain:<br>
-<input id="vice${index}" value="${team.viceCaptain}">
-
-<br>
-
-Contact:<br>
-<input id="contact${index}" value="${team.contact}">
-
-<h4>Squad</h4>
+<h4 style="color:gold;">Players</h4>
 
 <div class="players">
-
 ${playersHTML}
+</div>
+
+<div class="btn-group">
+
+<button onclick="saveTeam(${index})">Save</button>
+<button onclick="deleteTeam(${index})">Delete</button>
 
 </div>
 
-<br>
-
-<button onclick="saveTeam(${index})">Save Changes</button>
-
-<button onclick="deleteTeam(${index})">Delete Team</button>
+</div>
 
 `
-
-container.appendChild(card)
 
 })
 
 }
 
+/* SAVE */
+
 function saveTeam(index){
 
-let teams=JSON.parse(localStorage.getItem("teams")) || []
+let teams = JSON.parse(localStorage.getItem("teams")) || []
 
-teams[index].captain=document.getElementById("captain"+index).value
-teams[index].viceCaptain=document.getElementById("vice"+index).value
-teams[index].contact=document.getElementById("contact"+index).value
+if(!teams[index]) return
 
-for(let i=0;i<16;i++){
+teams[index].captain = document.getElementById("captain"+index).value
+teams[index].viceCaptain = document.getElementById("vice"+index).value
+teams[index].contact = document.getElementById("contact"+index).value
 
-teams[index].players[i]=document.getElementById(`p${index}_${i}`).value
+let players = teams[index].players || []
+
+for(let i=0;i<players.length;i++){
+
+let el = document.getElementById(`p${index}_${i}`)
+if(el) players[i] = el.value
 
 }
 
-localStorage.setItem("teams",JSON.stringify(teams))
+teams[index].players = players
 
-alert("Team Updated")
+localStorage.setItem("teams", JSON.stringify(teams))
+
+alert("✅ Team Updated Successfully")
 
 }
+
+/* DELETE */
 
 function deleteTeam(index){
 
-let teams=JSON.parse(localStorage.getItem("teams")) || []
+let teams = JSON.parse(localStorage.getItem("teams")) || []
 
-if(confirm("Delete this team?")){
+if(confirm("Delete this team permanently?")){
 
 teams.splice(index,1)
 
-localStorage.setItem("teams",JSON.stringify(teams))
+localStorage.setItem("teams", JSON.stringify(teams))
 
 loadTeams()
 
@@ -219,5 +330,4 @@ loadTeams()
 </script>
 
 </body>
-
 </html>
