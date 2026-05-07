@@ -95,7 +95,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 const playersDiv = document.getElementById("players");
 
-// CREATE 16 PLAYER INPUTS
+/* CREATE 16 PLAYER INPUTS */
 let html = "";
 for (let i = 1; i <= 16; i++) {
     html += `
@@ -105,7 +105,7 @@ for (let i = 1; i <= 16; i++) {
 }
 playersDiv.innerHTML = html;
 
-// LOGO PREVIEW
+/* LOGO PREVIEW */
 document.getElementById("logo").addEventListener("change", function (event) {
 
 const file = event.target.files[0];
@@ -123,13 +123,16 @@ reader.readAsDataURL(file);
 
 });
 
-// REGISTER FUNCTION
+/* REGISTER TEAM */
 window.registerTeam = function () {
 
-const teamName = document.getElementById("teamName").value.trim();
-const captain = document.getElementById("captain").value.trim();
-const viceCaptain = document.getElementById("viceCaptain").value.trim();
-const contact = document.getElementById("contact").value.trim();
+let teamName = document.getElementById("teamName").value.trim();
+let captain = document.getElementById("captain").value.trim();
+let viceCaptain = document.getElementById("viceCaptain").value.trim();
+let contact = document.getElementById("contact").value.trim();
+
+/* CLEAN NAME (IMPORTANT FIX) */
+teamName = teamName.replace(/\s+/g, " ").toLowerCase();
 
 if (!teamName) {
     alert("Enter Team Name");
@@ -138,23 +141,24 @@ if (!teamName) {
 
 let teams = JSON.parse(localStorage.getItem("teams") || "[]");
 
-// CHECK DUPLICATE
-let exists = teams.some(
-    t => (t.teamName || "").toLowerCase() === teamName.toLowerCase()
-);
+/* STRICT DUPLICATE CHECK */
+let exists = teams.some(t => {
+    let existingName = (t.teamName || "").replace(/\s+/g, " ").toLowerCase();
+    return existingName === teamName;
+});
 
 if (exists) {
-    alert("Team already exists!");
+    alert("❌ Team name already exists! Choose another name.");
     return;
 }
 
-// GET PLAYERS
+/* COLLECT PLAYERS */
 let players = [];
 for (let i = 1; i <= 16; i++) {
     players.push(document.getElementById("p" + i).value.trim());
 }
 
-// LOGO CHECK
+/* LOGO */
 const file = document.getElementById("logo").files[0];
 
 if (!file) {
@@ -179,7 +183,7 @@ teams.push(team);
 localStorage.setItem("teams", JSON.stringify(teams));
 
 document.getElementById("msg").innerText =
-"Team Registered Successfully!";
+"✅ Team Registered Successfully!";
 
 setTimeout(() => location.reload(), 1200);
 
