@@ -10,9 +10,14 @@
 
 <style>
 
-body{
+*{
 margin:0;
-font-family:Arial;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
 background:#071a14;
 color:white;
 padding:40px 6%;
@@ -42,6 +47,11 @@ padding:12px 22px;
 border-radius:40px;
 text-decoration:none;
 font-weight:bold;
+transition:0.3s;
+}
+
+.back-btn:hover{
+background:white;
 }
 
 /* GRID */
@@ -52,16 +62,22 @@ grid-template-columns:repeat(auto-fit,minmax(340px,1fr));
 gap:25px;
 }
 
-/* CARD */
+/* TEAM CARD */
 
 .team-card{
 background:#0d2d24;
 padding:22px;
 border-radius:18px;
-border:1px solid rgba(255,215,0,0.2);
+border:1px solid rgba(255,215,0,0.15);
+transition:0.3s;
 }
 
-/* LOGO */
+.team-card:hover{
+transform:translateY(-6px);
+box-shadow:0 10px 25px rgba(0,0,0,0.45);
+}
+
+/* TEAM LOGO */
 
 .team-logo{
 width:100px;
@@ -79,49 +95,52 @@ background:white;
 .team-name{
 text-align:center;
 font-size:28px;
-color:gold;
-margin:15px 0;
 font-weight:bold;
+color:gold;
+margin:16px 0;
 }
 
-/* INFO */
+/* INFO ROW */
 
 .row{
 display:flex;
 justify-content:space-between;
-padding:6px 0;
-border-bottom:1px solid rgba(255,255,255,0.1);
+padding:8px 0;
+border-bottom:1px solid rgba(255,255,255,0.08);
 font-size:15px;
 color:#ddd;
 }
 
-/* SQUAD */
+/* SQUAD TITLE */
 
 .squad-title{
-margin-top:15px;
+margin-top:18px;
+margin-bottom:10px;
 text-align:center;
 color:gold;
+font-size:19px;
 font-weight:bold;
-font-size:18px;
 }
+
+/* PLAYER */
 
 .player{
 background:#082019;
-margin:5px 0;
-padding:8px;
-border-radius:8px;
-font-size:14px;
+padding:10px;
+margin:6px 0;
+border-radius:10px;
 border-left:3px solid gold;
+font-size:14px;
 }
 
 /* STATUS */
 
 .status{
 margin-top:15px;
-text-align:center;
 background:#082019;
-padding:10px;
+padding:12px;
 border-radius:10px;
+text-align:center;
 color:lightgreen;
 font-weight:bold;
 }
@@ -130,18 +149,23 @@ font-weight:bold;
 
 .empty{
 text-align:center;
-font-size:26px;
+font-size:28px;
 color:gold;
 margin-top:80px;
 }
 
-/* DEBUG */
+/* RESPONSIVE */
 
-.debug{
-text-align:center;
-color:red;
-margin-bottom:20px;
-font-size:14px;
+@media(max-width:768px){
+
+.title{
+font-size:32px;
+}
+
+body{
+padding:30px 5%;
+}
+
 }
 
 </style>
@@ -154,109 +178,182 @@ font-size:14px;
 
 <div class="top-bar">
 
-<h1 class="title">🏏 REGISTERED TEAMS</h1>
+<h1 class="title">
+🏏 REGISTERED TEAMS
+</h1>
 
-<a class="back-btn" href="index.html">← Back Home</a>
+<a href="index.html" class="back-btn">
+← Back Home
+</a>
 
 </div>
 
-<!-- DEBUG MESSAGE (helps detect wrong page opening) -->
-<div id="debug" class="debug"></div>
-
-<!-- TEAMS -->
+<!-- TEAMS CONTAINER -->
 
 <div class="teams-container" id="teamsContainer"></div>
 
 <script>
 
-/* SHOW PAGE LOADED CONFIRMATION */
-document.getElementById("debug").innerText = "Teams page loaded successfully ✔";
-
 /* LOAD TEAMS */
+
 function loadTeams(){
 
-let container = document.getElementById("teamsContainer");
+let container =
+document.getElementById("teamsContainer")
 
-if(!container){
-    console.error("Container missing");
-    return;
+/* GET LOCAL STORAGE */
+
+let teams = []
+
+try{
+
+teams =
+JSON.parse(localStorage.getItem("teams")) || []
+
+}catch(error){
+
+teams = []
+
 }
 
-let teams = [];
+/* EMPTY */
 
-try {
-    teams = JSON.parse(localStorage.getItem("teams")) || [];
-} catch (e) {
-    teams = [];
+if(!Array.isArray(teams) || teams.length === 0){
+
+container.innerHTML = `
+<div class="empty">
+No Teams Registered Yet
+</div>
+`
+
+return
+
 }
 
-if (!Array.isArray(teams) || teams.length === 0) {
-    container.innerHTML = `<div class="empty">No Teams Registered Yet</div>`;
-    return;
-}
+/* CLEAR */
 
-container.innerHTML = "";
+container.innerHTML = ""
+
+/* LOOP */
 
 teams.forEach(team => {
 
-let playersHTML = "";
+let playersHTML = ""
 
-/* SAFE SQUAD BUILD */
-if (Array.isArray(team.players)) {
-    team.players.forEach((p, i) => {
-        if (p && p.trim() !== "") {
-            playersHTML += `<div class="player">Player ${i + 1}: ${p}</div>`;
-        }
-    });
-}
+/* PLAYERS */
 
-container.innerHTML += `
-<div class="team-card">
+if(Array.isArray(team.players)){
 
-    <img class="team-logo"
-    src="${team?.logo || 'https://cdn-icons-png.flaticon.com/512/857/857455.png'}">
+team.players.forEach((player,index)=>{
 
-    <div class="team-name">
-        ${team?.teamName || "Unknown Team"}
-    </div>
+if(player && player.trim() !== ""){
 
-    <div class="row">
-        <span>Captain</span>
-        <span>${team?.captain || "Not Set"}</span>
-    </div>
+playersHTML += `
 
-    <div class="row">
-        <span>Vice Captain</span>
-        <span>${team?.viceCaptain || "Not Set"}</span>
-    </div>
+<div class="player">
 
-    <div class="row">
-        <span>📱 Mobile Number</span>
-        <span>${team?.contact || "Not Set"}</span>
-    </div>
-
-    <div class="row">
-        <span>Total Players</span>
-        <span>${team?.players?.filter(p => p).length || 0}</span>
-    </div>
-
-    <div class="squad-title">🏏 Full Squad</div>
-
-    ${playersHTML || "<div class='player'>No players added</div>"}
-
-    <div class="status">✔ Registered Successfully</div>
+🏏 Player ${index+1}: ${player}
 
 </div>
-`;
 
-});
+`
 
 }
 
-/* RUN */
-loadTeams();
+})
+
+}
+
+/* IF NO PLAYERS */
+
+if(playersHTML === ""){
+
+playersHTML = `
+
+<div class="player">
+
+No Players Added
+
+</div>
+
+`
+
+}
+
+/* CARD */
+
+container.innerHTML += `
+
+<div class="team-card">
+
+<img
+class="team-logo"
+src="${team.logo || 'https://cdn-icons-png.flaticon.com/512/857/857455.png'}">
+
+<div class="team-name">
+
+${team.teamName || "Unknown Team"}
+
+</div>
+
+<div class="row">
+<span>Captain</span>
+<span>${team.captain || "Not Set"}</span>
+</div>
+
+<div class="row">
+<span>Vice Captain</span>
+<span>${team.viceCaptain || "Not Set"}</span>
+</div>
+
+<div class="row">
+<span>📱 Contact</span>
+<span>${team.contact || "Not Set"}</span>
+</div>
+
+<div class="row">
+<span>Total Players</span>
+<span>
+${team.players?.filter(p => p && p.trim() !== "").length || 0}
+</span>
+</div>
+
+<div class="squad-title">
+
+🏏 Full Squad
+
+</div>
+
+${playersHTML}
+
+<div class="status">
+
+✔ Registered Successfully
+
+</div>
+
+</div>
+
+`
+
+})
+
+}
+
+/* LOAD PAGE */
+
+loadTeams()
+
+/* AUTO UPDATE */
+
+window.addEventListener("storage", function(){
+
+loadTeams()
+
+})
 
 </script>
 
 </body>
+
 </html>
