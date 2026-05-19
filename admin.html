@@ -6,15 +6,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Admin Panel | Super Sixes</title>
+<title>Admin Panel | SUPER SIXES</title>
 
 <style>
 
-body{
+*{
 margin:0;
-font-family:Arial, sans-serif;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
 background:linear-gradient(135deg,#04140f,#06261c);
 color:white;
+min-height:100vh;
 }
 
 /* HEADER */
@@ -22,43 +28,48 @@ color:white;
 header{
 background:rgba(0,0,0,0.6);
 backdrop-filter:blur(10px);
-padding:18px;
-text-align:center;
-font-size:24px;
-color:gold;
-font-weight:bold;
-}
-
-/* CONTAINER */
-
-.container{
-width:90%;
-max-width:1100px;
-margin:auto;
 padding:20px;
+text-align:center;
+font-size:28px;
+font-weight:bold;
+color:gold;
+letter-spacing:1px;
 }
 
-/* LOGIN BOX */
+/* LOGIN */
 
 #login{
+width:100%;
+max-width:400px;
+margin:100px auto;
+background:rgba(255,255,255,0.06);
+padding:35px;
+border-radius:18px;
 text-align:center;
-margin-top:100px;
+backdrop-filter:blur(10px);
+border:1px solid rgba(255,215,0,0.2);
+}
+
+#login h2{
+margin-bottom:25px;
+color:gold;
 }
 
 input{
-padding:12px;
-margin:8px;
-width:260px;
+width:100%;
+padding:13px;
+margin:10px 0;
 border:none;
-border-radius:8px;
+border-radius:10px;
 outline:none;
+font-size:15px;
 }
 
 button{
-padding:10px 18px;
+padding:12px 20px;
 background:gold;
 border:none;
-border-radius:8px;
+border-radius:10px;
 font-weight:bold;
 cursor:pointer;
 transition:0.3s;
@@ -66,90 +77,122 @@ transition:0.3s;
 
 button:hover{
 background:#ffd700;
-transform:scale(1.05);
+transform:scale(1.04);
 }
 
 #msg{
+margin-top:15px;
 color:red;
 font-weight:bold;
+}
+
+/* PANEL */
+
+.container{
+width:92%;
+max-width:1200px;
+margin:auto;
+padding:30px 0;
+}
+
+.hidden{
+display:none;
 }
 
 /* GRID */
 
 #teams{
 display:grid;
-grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
-gap:20px;
-margin-top:20px;
+grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+gap:25px;
+margin-top:30px;
 }
 
 /* CARD */
 
 .card{
 background:rgba(255,255,255,0.06);
-backdrop-filter:blur(12px);
-border:1px solid rgba(255,215,0,0.2);
-padding:20px;
-border-radius:15px;
+backdrop-filter:blur(10px);
+border:1px solid rgba(255,215,0,0.15);
+padding:22px;
+border-radius:18px;
 transition:0.3s;
 }
 
 .card:hover{
 transform:translateY(-5px);
-box-shadow:0 10px 20px rgba(0,0,0,0.4);
+box-shadow:0 10px 25px rgba(0,0,0,0.4);
 }
 
-/* TITLE */
+/* TEAM TITLE */
 
 .card h3{
 color:gold;
-margin-bottom:10px;
+margin-bottom:15px;
+font-size:25px;
 }
 
-/* INPUTS */
+/* LABEL */
 
-.card input{
-width:100%;
-padding:10px;
-margin:5px 0;
-border-radius:6px;
-border:none;
+label{
+display:block;
+margin-top:10px;
+margin-bottom:5px;
+font-size:14px;
+color:#ddd;
 }
 
-/* PLAYERS GRID */
+/* PLAYERS */
 
 .players{
 display:grid;
-grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
-gap:5px;
-margin-top:10px;
+grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+gap:8px;
+margin-top:12px;
+}
+
+/* PLAYER INPUT */
+
+.players input{
+margin:0;
 }
 
 /* BUTTON GROUP */
 
 .btn-group{
 display:flex;
-justify-content:space-between;
-margin-top:10px;
 gap:10px;
+margin-top:15px;
 }
 
 .btn-group button{
 flex:1;
 }
 
-/* HIDE */
+/* SAVE */
 
-.hidden{
-display:none;
+.save-btn{
+background:#00c853;
+color:white;
+}
+
+/* DELETE */
+
+.delete-btn{
+background:#ff1744;
+color:white;
 }
 
 /* RESPONSIVE */
 
 @media(max-width:600px){
 
-input{
-width:90%;
+header{
+font-size:22px;
+}
+
+#login{
+width:92%;
 }
 
 }
@@ -159,6 +202,8 @@ width:90%;
 </head>
 
 <body>
+
+<!-- HEADER -->
 
 <header>
 🔐 SUPER SIXES ADMIN PANEL
@@ -170,21 +215,26 @@ width:90%;
 
 <h2>Admin Login</h2>
 
-<input type="password" id="password" placeholder="Enter Password">
+<input
+type="password"
+id="password"
+placeholder="Enter Admin Password">
 
-<br>
-
-<button onclick="login()">Login</button>
+<button onclick="login()">
+Login
+</button>
 
 <p id="msg"></p>
 
 </div>
 
-<!-- PANEL -->
+<!-- ADMIN PANEL -->
 
 <div class="container hidden" id="adminPanel">
 
-<h2 style="text-align:center;color:gold;">Registered Teams</h2>
+<h2 style="text-align:center;color:gold;">
+🏏 Registered Teams
+</h2>
 
 <div id="teams"></div>
 
@@ -192,7 +242,7 @@ width:90%;
 
 <script>
 
-/* LOGIN */
+/* LOGIN FUNCTION */
 
 function login(){
 
@@ -200,14 +250,18 @@ let pass = document.getElementById("password").value
 
 if(pass === "samikhan782"){
 
-document.getElementById("login").classList.add("hidden")
-document.getElementById("adminPanel").classList.remove("hidden")
+document.getElementById("login")
+.classList.add("hidden")
+
+document.getElementById("adminPanel")
+.classList.remove("hidden")
 
 loadTeams()
 
 }else{
 
-document.getElementById("msg").innerText = "❌ Wrong Password"
+document.getElementById("msg")
+.innerText = "❌ Wrong Password"
 
 }
 
@@ -217,18 +271,29 @@ document.getElementById("msg").innerText = "❌ Wrong Password"
 
 function loadTeams(){
 
-let teams = JSON.parse(localStorage.getItem("teams")) || []
+let teams =
+JSON.parse(localStorage.getItem("teams")) || []
 
-let container = document.getElementById("teams")
+let container =
+document.getElementById("teams")
 
 container.innerHTML = ""
 
+/* NO TEAMS */
+
 if(teams.length === 0){
 
-container.innerHTML = "<h3 style='text-align:center;'>No Teams Registered Yet</h3>"
+container.innerHTML = `
+<h3 style="text-align:center;">
+No Teams Registered Yet
+</h3>
+`
+
 return
 
 }
+
+/* SHOW TEAMS */
 
 teams.forEach((team,index)=>{
 
@@ -236,10 +301,16 @@ let playersHTML = ""
 
 let players = team.players || []
 
-players.forEach((p,i)=>{
+players.forEach((player,i)=>{
 
 playersHTML += `
-<input id="p${index}_${i}" value="${p || ''}">
+
+<input
+type="text"
+id="p${index}_${i}"
+value="${player || ''}"
+placeholder="Player ${i+1}">
+
 `
 
 })
@@ -248,27 +319,58 @@ container.innerHTML += `
 
 <div class="card">
 
-<h3>${team.teamName || "Unknown Team"}</h3>
+<h3>
+${team.teamName || "Unknown Team"}
+</h3>
 
 <label>Captain</label>
-<input id="captain${index}" value="${team.captain || ''}">
+
+<input
+type="text"
+id="captain${index}"
+value="${team.captain || ''}">
 
 <label>Vice Captain</label>
-<input id="vice${index}" value="${team.viceCaptain || ''}">
 
-<label>Contact</label>
-<input id="contact${index}" value="${team.contact || ''}">
+<input
+type="text"
+id="vice${index}"
+value="${team.viceCaptain || ''}">
 
-<h4 style="color:gold;">Players</h4>
+<label>Contact Number</label>
+
+<input
+type="text"
+id="contact${index}"
+value="${team.contact || ''}">
+
+<h4 style="margin-top:15px;color:gold;">
+🏏 Players Squad
+</h4>
 
 <div class="players">
+
 ${playersHTML}
+
 </div>
 
 <div class="btn-group">
 
-<button onclick="saveTeam(${index})">Save</button>
-<button onclick="deleteTeam(${index})">Delete</button>
+<button
+class="save-btn"
+onclick="saveTeam(${index})">
+
+Save
+
+</button>
+
+<button
+class="delete-btn"
+onclick="deleteTeam(${index})">
+
+Delete
+
+</button>
 
 </div>
 
@@ -280,46 +382,78 @@ ${playersHTML}
 
 }
 
-/* SAVE */
+/* SAVE TEAM */
 
 function saveTeam(index){
 
-let teams = JSON.parse(localStorage.getItem("teams")) || []
+let teams =
+JSON.parse(localStorage.getItem("teams")) || []
 
 if(!teams[index]) return
 
-teams[index].captain = document.getElementById("captain"+index).value
-teams[index].viceCaptain = document.getElementById("vice"+index).value
-teams[index].contact = document.getElementById("contact"+index).value
+/* UPDATE TEAM INFO */
 
-let players = teams[index].players || []
+teams[index].captain =
+document.getElementById("captain"+index).value
 
-for(let i=0;i<players.length;i++){
+teams[index].viceCaptain =
+document.getElementById("vice"+index).value
 
-let el = document.getElementById(`p${index}_${i}`)
-if(el) players[i] = el.value
+teams[index].contact =
+document.getElementById("contact"+index).value
+
+/* UPDATE PLAYERS */
+
+let updatedPlayers = []
+
+let oldPlayers =
+teams[index].players || []
+
+for(let i=0;i<oldPlayers.length;i++){
+
+let input =
+document.getElementById(`p${index}_${i}`)
+
+if(input){
+
+updatedPlayers.push(input.value)
 
 }
 
-teams[index].players = players
+}
 
-localStorage.setItem("teams", JSON.stringify(teams))
+teams[index].players = updatedPlayers
+
+/* SAVE */
+
+localStorage.setItem(
+"teams",
+JSON.stringify(teams)
+)
+
+/* RELOAD */
+
+loadTeams()
 
 alert("✅ Team Updated Successfully")
 
 }
 
-/* DELETE */
+/* DELETE TEAM */
 
 function deleteTeam(index){
 
-let teams = JSON.parse(localStorage.getItem("teams")) || []
+let teams =
+JSON.parse(localStorage.getItem("teams")) || []
 
 if(confirm("Delete this team permanently?")){
 
 teams.splice(index,1)
 
-localStorage.setItem("teams", JSON.stringify(teams))
+localStorage.setItem(
+"teams",
+JSON.stringify(teams)
+)
 
 loadTeams()
 
@@ -330,4 +464,5 @@ loadTeams()
 </script>
 
 </body>
+
 </html>
