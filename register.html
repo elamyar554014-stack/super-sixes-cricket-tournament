@@ -20,15 +20,16 @@ font-family:Arial,sans-serif;
 body{
 background:#071a14;
 color:white;
-min-height:100vh;
+padding:30px 15px;
 }
-
-/* CONTAINER */
 
 .container{
 max-width:900px;
 margin:auto;
-padding:30px 20px;
+background:#0d2d24;
+padding:25px;
+border-radius:20px;
+border:1px solid rgba(255,215,0,0.15);
 }
 
 /* TITLE */
@@ -37,16 +38,24 @@ h1{
 text-align:center;
 color:gold;
 margin-bottom:25px;
-font-size:42px;
+font-size:40px;
 }
 
-/* FORM BOX */
+/* BACK BUTTON */
 
-.form-box{
-background:#0d2d24;
-padding:25px;
-border-radius:20px;
-border:1px solid rgba(255,215,0,0.15);
+.back-btn{
+display:inline-block;
+background:gold;
+color:black;
+padding:10px 20px;
+border-radius:40px;
+text-decoration:none;
+font-weight:bold;
+margin-bottom:20px;
+}
+
+.back-btn:hover{
+background:white;
 }
 
 /* INPUT */
@@ -61,7 +70,7 @@ outline:none;
 font-size:15px;
 }
 
-/* FILE INPUT */
+/* FILE */
 
 input[type="file"]{
 background:white;
@@ -71,15 +80,15 @@ color:black;
 /* BUTTON */
 
 button{
-padding:14px;
-background:gold;
-border:none;
-font-weight:bold;
-cursor:pointer;
-border-radius:10px;
-margin-top:15px;
 width:100%;
+padding:14px;
+margin-top:20px;
+border:none;
+border-radius:10px;
+background:gold;
+font-weight:bold;
 font-size:16px;
+cursor:pointer;
 transition:0.3s;
 }
 
@@ -88,59 +97,35 @@ background:white;
 transform:scale(1.02);
 }
 
-/* PLAYER BOX */
+/* PLAYER TITLE */
 
-.player-box{
-margin:5px 0;
+.player-title{
+margin-top:20px;
+margin-bottom:10px;
+font-size:22px;
+color:gold;
 }
 
 /* MESSAGE */
 
 #msg{
 text-align:center;
-margin-top:18px;
-color:lightgreen;
+margin-top:15px;
 font-weight:bold;
 font-size:18px;
+color:lightgreen;
 }
 
-/* LOGO PREVIEW */
+/* PREVIEW */
 
 #preview{
 display:none;
 width:130px;
 height:130px;
 object-fit:cover;
-margin:15px auto;
 border-radius:15px;
 border:3px solid gold;
-display:block;
-background:white;
-}
-
-/* SECTION TITLE */
-
-.section-title{
-margin-top:20px;
-margin-bottom:10px;
-color:gold;
-font-size:22px;
-}
-
-/* BACK BUTTON */
-
-.back-btn{
-display:inline-block;
-margin-bottom:20px;
-background:gold;
-color:black;
-padding:10px 18px;
-border-radius:40px;
-text-decoration:none;
-font-weight:bold;
-}
-
-.back-btn:hover{
+margin:15px auto;
 background:white;
 }
 
@@ -149,11 +134,11 @@ background:white;
 @media(max-width:600px){
 
 h1{
-font-size:32px;
+font-size:30px;
 }
 
 .container{
-padding:20px 12px;
+padding:18px;
 }
 
 }
@@ -172,116 +157,156 @@ padding:20px 12px;
 
 <h1>🏏 Team Registration</h1>
 
-<div class="form-box">
+<!-- TEAM DETAILS -->
 
 <input
+type="text"
 id="teamName"
-placeholder="Team Name"
-onkeydown="moveNext(event,'captain')">
+placeholder="Team Name">
 
 <input
+type="text"
 id="captain"
-placeholder="Captain Name"
-onkeydown="moveNext(event,'viceCaptain')">
+placeholder="Captain Name">
 
 <input
+type="text"
 id="viceCaptain"
-placeholder="Vice Captain Name"
-onkeydown="moveNext(event,'contact')">
+placeholder="Vice Captain Name">
 
 <input
+type="text"
 id="contact"
-placeholder="Contact Number"
-onkeydown="moveNext(event,'p1')">
+placeholder="Contact Number">
 
-<input type="file" id="logo">
+<!-- LOGO -->
+
+<input
+type="file"
+id="logo"
+accept="image/*">
 
 <img id="preview">
 
-<h3 class="section-title">
+<!-- PLAYERS -->
+
+<h3 class="player-title">
 🏏 Players Squad
 </h3>
 
 <div id="players"></div>
 
+<!-- BUTTON -->
+
 <button onclick="registerTeam()">
-
 Register Team
-
 </button>
 
 <div id="msg"></div>
 
 </div>
 
-</div>
-
 <script>
+
+/* CREATE PLAYER INPUTS */
+
+const playersDiv =
+document.getElementById("players")
+
+for(let i=1;i<=16;i++){
+
+let input =
+document.createElement("input")
+
+input.type = "text"
+
+input.id = "p"+i
+
+input.placeholder = "Player " + i
 
 /* MOVE TO NEXT INPUT */
 
-function moveNext(event,nextId){
+input.addEventListener("keydown",function(event){
 
 if(event.key === "Enter"){
 
 event.preventDefault()
 
-let nextInput =
-document.getElementById(nextId)
+let next =
+document.getElementById("p"+(i+1))
 
-if(nextInput){
+if(next){
 
-nextInput.focus()
-
-}
+next.focus()
 
 }
 
 }
 
-/* PAGE LOADED */
+})
 
-document.addEventListener("DOMContentLoaded", function () {
-
-const playersDiv =
-document.getElementById("players")
-
-/* CREATE 16 PLAYER INPUTS */
-
-let html = ""
-
-for(let i = 1; i <= 16; i++){
-
-let nextField = "p" + (i + 1)
-
-if(i === 16){
-
-nextField = ""
+playersDiv.appendChild(input)
 
 }
 
-html += `
+/* MAIN INPUTS NEXT */
 
-<div class="player-box">
+document.getElementById("teamName")
+.addEventListener("keydown",function(e){
 
-<input
-type="text"
-id="p${i}"
-placeholder="Player ${i}"
-onkeydown="moveNext(event,'${nextField}')">
+if(e.key==="Enter"){
 
-</div>
+e.preventDefault()
 
-`
+document.getElementById("captain").focus()
 
 }
 
-playersDiv.innerHTML = html
+})
+
+document.getElementById("captain")
+.addEventListener("keydown",function(e){
+
+if(e.key==="Enter"){
+
+e.preventDefault()
+
+document.getElementById("viceCaptain").focus()
+
+}
+
+})
+
+document.getElementById("viceCaptain")
+.addEventListener("keydown",function(e){
+
+if(e.key==="Enter"){
+
+e.preventDefault()
+
+document.getElementById("contact").focus()
+
+}
+
+})
+
+document.getElementById("contact")
+.addEventListener("keydown",function(e){
+
+if(e.key==="Enter"){
+
+e.preventDefault()
+
+document.getElementById("p1").focus()
+
+}
+
+})
 
 /* LOGO PREVIEW */
 
 document.getElementById("logo")
-.addEventListener("change", function(event){
+.addEventListener("change",function(event){
 
 const file = event.target.files[0]
 
@@ -306,7 +331,7 @@ reader.readAsDataURL(file)
 
 /* REGISTER TEAM */
 
-window.registerTeam = function(){
+function registerTeam(){
 
 let teamName =
 document.getElementById("teamName")
@@ -324,12 +349,9 @@ let contact =
 document.getElementById("contact")
 .value.trim()
 
-/* CLEAN NAME */
+/* VALIDATION */
 
-let cleanTeamName =
-teamName.replace(/\s+/g, " ").toLowerCase()
-
-if(!teamName){
+if(teamName === ""){
 
 alert("Enter Team Name")
 
@@ -337,21 +359,20 @@ return
 
 }
 
-/* GET TEAMS */
+/* TEAMS */
 
 let teams =
-JSON.parse(localStorage.getItem("teams") || "[]")
+JSON.parse(localStorage.getItem("teams")) || []
 
 /* DUPLICATE CHECK */
 
-let exists = teams.some(t => {
+let exists = teams.some(team => {
 
-let existingName =
-(t.teamName || "")
-.replace(/\s+/g, " ")
-.toLowerCase()
-
-return existingName === cleanTeamName
+return (
+team.teamName &&
+team.teamName.toLowerCase() ===
+teamName.toLowerCase()
+)
 
 })
 
@@ -367,7 +388,7 @@ return
 
 let players = []
 
-for(let i = 1; i <= 16; i++){
+for(let i=1;i<=16;i++){
 
 players.push(
 document.getElementById("p"+i)
@@ -396,11 +417,11 @@ reader.onload = function(e){
 
 let team = {
 
-teamName,
-captain,
-viceCaptain,
-contact,
-players,
+teamName:teamName,
+captain:captain,
+viceCaptain:viceCaptain,
+contact:contact,
+players:players,
 logo:e.target.result
 
 }
@@ -414,11 +435,15 @@ localStorage.setItem(
 JSON.stringify(teams)
 )
 
+/* MESSAGE */
+
 document.getElementById("msg")
 .innerText =
-"✅ Team Registered Successfully!"
+"✅ Team Registered Successfully"
 
-setTimeout(() => {
+/* RELOAD */
+
+setTimeout(function(){
 
 location.reload()
 
@@ -429,8 +454,6 @@ location.reload()
 reader.readAsDataURL(file)
 
 }
-
-})
 
 </script>
 
