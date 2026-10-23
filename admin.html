@@ -221,7 +221,80 @@ td {
 #appNotice.show { display:block; }
 #appNotice.error { border-color:rgba(192,57,43,.75); border-left-color:var(--red); }
 
-@media(max-width:600px) {
+
+.form-frame {
+  width:100%;
+  min-height:720px;
+  border:1px solid var(--line);
+  background:#fff;
+  border-radius:4px;
+}
+.form-actions {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:center;
+}
+.form-actions a {
+  display:inline-block;
+  padding:11px 15px;
+  margin:3px;
+  border:1px solid var(--line);
+  border-radius:3px;
+  color:var(--cream);
+  text-decoration:none;
+  font-weight:700;
+}
+.form-note {
+  padding:12px 14px;
+  background:var(--panel2);
+  border-left:3px solid var(--green);
+  line-height:1.6;
+  margin:12px 0;
+}
+
+
+.responses-heading {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.responses-table-wrap {
+  width:100%;
+  overflow-x:auto;
+  margin-top:12px;
+}
+.responses-table {
+  width:100%;
+  border-collapse:collapse;
+  min-width:650px;
+  font-size:14px;
+}
+.responses-table th,
+.responses-table td {
+  border:1px solid var(--line);
+  padding:10px;
+  text-align:left;
+  vertical-align:top;
+  overflow-wrap:anywhere;
+}
+.responses-table th {
+  background:var(--panel2);
+  color:var(--cream);
+  position:sticky;
+  top:0;
+}
+.responses-table tr:nth-child(even) td {
+  background:rgba(255,255,255,.025);
+}
+.response-empty {
+  padding:14px;
+  border:1px dashed var(--line);
+  border-radius:4px;
+}
+\n@media(max-width:600px) {
   h1 { font-size:23px; }
   .container { width:94%; }
 }
@@ -249,6 +322,7 @@ td {
 
   <nav class="tabs">
     <button class="active" data-tab="teamsSection">Edit Squad / Teams</button>
+    <button data-tab="teamFormSection">Received Team Responses</button>
     <button data-tab="fixturesSection">Generate Fixtures</button>
     <button data-tab="scoreSection">Enter Score</button>
     <button data-tab="customSection">Select Next Match</button>
@@ -292,6 +366,43 @@ td {
     <h2>REGISTERED TEAMS</h2>
     <div id="teamsList" class="grid"></div>
 
+  </section>
+
+  <!-- RECEIVED GOOGLE FORM RESPONSES -->
+
+  <section id="teamFormSection" class="section">
+    <h2>RECEIVED TEAM RESPONSES</h2>
+    <div class="card">
+      <p class="muted">View team registration submissions from your Google Form here. Connect the Google Sheets response spreadsheet once, then use Refresh Responses whenever new teams submit.</p>
+      <div class="form-actions">
+        <a href="https://forms.gle/3KhjX5aywtZrkbRE6" target="_blank" rel="noopener noreferrer">Open Team Registration Form ↗</a>
+      </div>
+
+      <div class="form-note">
+        <strong>One-time setup:</strong> In Google Forms, open <em>Responses → Link to Sheets</em>. In that response spreadsheet, choose <em>Share → General access → Anyone with the link → Viewer</em>. Paste the spreadsheet link below. The response spreadsheet must be viewable by link for this static website to read it.
+      </div>
+
+      <label>GOOGLE SHEETS RESPONSE SPREADSHEET LINK</label>
+      <input id="responsesSheetUrl" type="url" value="https://docs.google.com/spreadsheets/d/1OqXgfTjcVJ2EAQ4EcuFtyl_QHT_6eU-2BiCDXgnw5q8/edit?usp=drivesdk" placeholder="Paste the Google Sheets response spreadsheet link">
+      <label>RESPONSE SHEET TAB NAME</label>
+      <input id="responsesSheetName" type="text" value="Form Responses 1" placeholder="Form Responses 1">
+      <div class="form-actions">
+        <button class="green" onclick="loadTeamResponses(true)">Connect &amp; Load Responses</button>
+        <button onclick="loadTeamResponses(false)">Refresh Responses</button>
+      </div>
+      <p id="responsesSheetMsg" class="msg" aria-live="polite"></p>
+    </div>
+
+    <div class="card">
+      <div class="responses-heading">
+        <h3>SUBMISSIONS RECEIVED</h3>
+        <span id="responsesCount" class="muted">No responses loaded yet</span>
+      </div>
+      <div id="responsesLoading" class="muted" aria-live="polite"></div>
+      <div id="teamResponsesTableWrap" class="responses-table-wrap">
+        <p class="muted">Connect your response spreadsheet to view submitted teams here.</p>
+      </div>
+    </div>
   </section>
 
   <!-- FIXTURES -->
@@ -489,6 +600,170 @@ function escapeHTML(value) {
   })[c]);
 }
 
+// Convert every word in a player's name to title case (e.g. "sAMI uLLAH" -> "Sami Ullah").
+function titleCaseName(value) {
+  return String(value ?? "")
+    .trim()
+    .toLocaleLowerCase()
+    .replace(/(^|[\s'-])([\p{L}\p{N}])/gu, (match, separator, first) =>
+      separator + first.toLocaleUpperCase()
+    );
+}
+
+// Apply squad-name capitalization while typing/pasting into squad textareas.
+function attachSquadCapitalization() {
+  const fields = [
+    document.getElementById("newPlayers"),
+    ...document.querySelectorAll('textarea[id^="players"]')
+  ].filter(Boolean);
+
+  fields.forEach(field => {
+    if (field.dataset.titleCaseBound === "true") return;
+    field.dataset.titleCaseBound = "true";
+    field.addEventListener("blur", () => {
+      field.value = field.value
+        .split("\\n")
+        .map(line => titleCaseName(line))
+        .join("\\n");
+    });
+  });
+}
+
+function parseCSV(text) {
+  const rows = [];
+  let row = [], cell = "", inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === '"') {
+      if (inQuotes && text[i + 1] === '"') {
+        cell += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (ch === ',' && !inQuotes) {
+      row.push(cell);
+      cell = "";
+    } else if ((ch === '\n' || ch === '\r') && !inQuotes) {
+      if (ch === '\r' && text[i + 1] === '\n') i++;
+      row.push(cell);
+      if (row.some(value => value.trim() !== "")) rows.push(row);
+      row = [];
+      cell = "";
+    } else {
+      cell += ch;
+    }
+  }
+  row.push(cell);
+  if (row.some(value => value.trim() !== "")) rows.push(row);
+  return rows;
+}
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, ch => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  })[ch]);
+}
+
+function getResponsesSheetDetails(url) {
+  const parsed = new URL(url);
+  if (parsed.protocol !== "https:" ||
+      !["docs.google.com", "sheets.google.com"].includes(parsed.hostname)) {
+    throw new Error("Please paste a valid Google Sheets spreadsheet link.");
+  }
+  const match = parsed.pathname.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+  if (!match) throw new Error("That link does not appear to be a Google Sheets spreadsheet link.");
+  return {
+    id: match[1],
+    gid: parsed.searchParams.get("gid") || parsed.hash.match(/gid=(\d+)/)?.[1] || ""
+  };
+}
+
+function renderTeamResponses(rows) {
+  const wrap = document.getElementById("teamResponsesTableWrap");
+  const count = document.getElementById("responsesCount");
+  if (!rows || rows.length < 2) {
+    wrap.innerHTML = '<p class="response-empty muted">The spreadsheet loaded, but no submitted responses were found yet.</p>';
+    count.textContent = "0 responses";
+    return;
+  }
+
+  const headers = rows[0].map((header, index) => String(header || `Column ${index + 1}`).trim());
+  const bodyRows = rows.slice(1);
+  let table = '<table class="responses-table"><thead><tr>';
+  table += headers.map(header => `<th>${escapeHTML(header)}</th>`).join("");
+  table += '</tr></thead><tbody>';
+  bodyRows.forEach(row => {
+    table += '<tr>';
+    headers.forEach((_, index) => {
+      table += `<td>${escapeHTML(row[index] || "")}</td>`;
+    });
+    table += '</tr>';
+  });
+  table += '</tbody></table>';
+  wrap.innerHTML = table;
+  count.textContent = `${bodyRows.length} response${bodyRows.length === 1 ? "" : "s"}`;
+}
+
+async function loadTeamResponses(saveSettings) {
+  const input = document.getElementById("responsesSheetUrl");
+  const nameInput = document.getElementById("responsesSheetName");
+  const message = document.getElementById("responsesSheetMsg");
+  const loading = document.getElementById("responsesLoading");
+  const url = (input.value.trim() || safeGetItem("superSixesResponsesSheetUrl") || "").trim();
+  const sheetName = (nameInput.value.trim() || "Form Responses 1");
+  message.textContent = "";
+  loading.textContent = "";
+
+  if (!url) {
+    message.textContent = "Paste the Google Sheets response spreadsheet link first.";
+    return;
+  }
+
+  let details;
+  try {
+    details = getResponsesSheetDetails(url);
+  } catch (error) {
+    message.textContent = error.message;
+    return;
+  }
+
+  if (saveSettings) {
+    safeSetItem("superSixesResponsesSheetUrl", url);
+    safeSetItem("superSixesResponsesSheetName", sheetName);
+  }
+
+  const query = details.gid
+    ? `gid=${encodeURIComponent(details.gid)}`
+    : `sheet=${encodeURIComponent(sheetName)}`;
+  const csvUrl = `https://docs.google.com/spreadsheets/d/${details.id}/gviz/tq?tqx=out:csv&${query}`;
+
+  loading.textContent = "Loading responses…";
+  const buttonNodes = document.querySelectorAll('#teamFormSection button');
+  buttonNodes.forEach(button => button.disabled = true);
+
+  try {
+    const response = await fetch(csvUrl, { method: "GET" });
+    if (!response.ok) throw new Error("Google Sheets could not provide the response data.");
+    const csv = await response.text();
+    if (/<!doctype html|<html/i.test(csv.slice(0, 300))) {
+      throw new Error("Google returned a web page instead of CSV data. Check that the sheet is shared as Anyone with the link — Viewer.");
+    }
+    const rows = parseCSV(csv);
+    renderTeamResponses(rows);
+    message.textContent = "Responses loaded successfully.";
+  } catch (error) {
+    console.error("Could not load Google Form responses:", error);
+    document.getElementById("teamResponsesTableWrap").innerHTML =
+      '<p class="response-empty muted">Could not load responses. Check that the spreadsheet is shared as “Anyone with the link — Viewer”, and that the sheet tab name is correct. You can still open the response spreadsheet directly in Google Sheets.</p>';
+    document.getElementById("responsesCount").textContent = "Unable to load";
+    message.textContent = error.message || "Could not load responses. Check the spreadsheet sharing settings and try again.";
+  } finally {
+    loading.textContent = "";
+    buttonNodes.forEach(button => button.disabled = false);
+  }
+}
+
 function makeId() {
   return "M" + Date.now().toString(36) +
     Math.random().toString(36).slice(2,5);
@@ -536,7 +811,7 @@ function addTeam() {
   }
 
   const players = document.getElementById("newPlayers").value
-    .split("\n").map(p => p.trim()).filter(Boolean);
+    .split("\n").map(p => titleCaseName(p.trim())).filter(Boolean);
 
   teams.push({
     id: makeId(),
@@ -605,7 +880,7 @@ function saveTeam(i) {
   teams[i].viceCaptain = document.getElementById("vice" + i).value.trim();
   teams[i].contact = document.getElementById("contact" + i).value.trim();
   teams[i].players = document.getElementById("players" + i).value
-    .split("\n").map(p => p.trim()).filter(Boolean);
+    .split("\n").map(p => titleCaseName(p.trim())).filter(Boolean);
 
   matches.forEach(m => {
     if (m.teamA === oldName) m.teamA = name;
@@ -1103,10 +1378,15 @@ function refresh() {
 
   try {
     renderTeams();
+    attachSquadCapitalization();
     renderFixtures();
     renderMatchSelect();
     renderCustomOptions();
     renderResults();
+    const sheetInput = document.getElementById("responsesSheetUrl");
+    if (sheetInput && !sheetInput.value) sheetInput.value = safeGetItem("superSixesResponsesSheetUrl") || "";
+    const sheetNameInput = document.getElementById("responsesSheetName");
+    if (sheetNameInput) sheetNameInput.value = safeGetItem("superSixesResponsesSheetName") || sheetNameInput.value || "Form Responses 1";
   } catch (error) {
     console.error("Admin Panel refresh failed:", error);
     showNotice("The Admin Panel hit an error while refreshing. Open the browser Console (F12) and check the first red error message.", true);
