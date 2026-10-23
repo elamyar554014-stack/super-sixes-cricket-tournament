@@ -1,381 +1,608 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Super Sixes Cricket Tournament</title>
 
-<title>SUPER SIXES CRICKET TOURNAMENT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
 
-/* SAME CSS (UNCHANGED) */
+  /* ============ TOKENS ============ */
+  :root{
+    --turf-dark:   #0A1B13;
+    --turf-panel:  #102A1D;
+    --turf-panel-2:#0D2318;
+    --cream:       #F1EAD8;
+    --cream-dim:   #B9AF98;
+    --ball-red:    #C0392B;
+    --ball-red-dark:#7A211A;
+    --gold:        #D9A441;
+    --hairline:    rgba(241,234,216,0.14);
+    --hairline-strong: rgba(241,234,216,0.26);
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial,sans-serif;
-}
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-body:    'Work Sans', sans-serif;
+    --font-mono:    'Space Mono', monospace;
+  }
 
-body{
-background:#071a14;
-color:white;
-overflow-x:hidden;
-}
+  *{ margin:0; padding:0; box-sizing:border-box; }
 
-/* HEADER */
+  html{ scroll-behavior:smooth; }
 
-header{
-width:100%;
-padding:18px 8%;
-display:flex;
-justify-content:space-between;
-align-items:center;
-background:rgba(0,0,0,0.75);
-backdrop-filter:blur(10px);
-position:fixed;
-top:0;
-z-index:1000;
-}
+  body{
+    background:var(--turf-dark);
+    color:var(--cream);
+    font-family:var(--font-body);
+    overflow-x:hidden;
+  }
 
-.logo{
-font-size:30px;
-font-weight:bold;
-color:gold;
-letter-spacing:1px;
-}
+  a{ color:inherit; text-decoration:none; }
 
-/* MENU BUTTON */
+  :focus-visible{
+    outline:2px solid var(--gold);
+    outline-offset:3px;
+  }
 
-.menu-btn{
-font-size:34px;
-cursor:pointer;
-transition:0.3s;
-}
+  img{ max-width:100%; display:block; }
 
-.menu-btn:hover{
-color:gold;
-}
+  .wrap{
+    max-width:1120px;
+    margin:0 auto;
+    padding-left:6%;
+    padding-right:6%;
+  }
 
-/* SIDEBAR */
+  /* subtle mown-pitch stripe texture, used sparingly */
+  .turf-stripes{
+    background-image:repeating-linear-gradient(
+      100deg,
+      rgba(241,234,216,0.025) 0px,
+      rgba(241,234,216,0.025) 40px,
+      transparent 40px,
+      transparent 80px
+    );
+  }
 
-.sidebar{
-position:fixed;
-top:0;
-right:-320px;
-width:300px;
-height:100vh;
-background:#0d2d23;
-padding-top:80px;
-transition:0.4s;
-z-index:2000;
-overflow-y:auto;
-box-shadow:-5px 0 20px rgba(0,0,0,0.5);
-}
+  /* ============ HEADER ============ */
+  header{
+    position:fixed;
+    top:0; left:0; right:0;
+    z-index:1000;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:18px 6%;
+    background:rgba(10,27,19,0.9);
+    border-bottom:1px solid var(--hairline);
+  }
 
-.sidebar.active{
-right:0;
-}
+  .wordmark{
+    font-family:var(--font-display);
+    font-size:26px;
+    letter-spacing:1px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
 
-.sidebar a{
-display:block;
-padding:18px 30px;
-color:white;
-text-decoration:none;
-font-size:18px;
-font-weight:bold;
-border-bottom:1px solid rgba(255,255,255,0.08);
-transition:0.3s;
-}
+  .wordmark .stitch{
+    width:16px; height:16px;
+    border-radius:50%;
+    background:var(--ball-red);
+    position:relative;
+    flex-shrink:0;
+  }
+  .wordmark .stitch::before,
+  .wordmark .stitch::after{
+    content:"";
+    position:absolute;
+    top:50%; left:50%;
+    width:14px; height:1px;
+    background:var(--cream);
+    opacity:0.85;
+  }
+  .wordmark .stitch::before{ transform:translate(-50%,-50%) rotate(20deg); }
+  .wordmark .stitch::after{ transform:translate(-50%,-50%) rotate(-20deg); }
 
-.sidebar a:hover{
-background:gold;
-color:black;
-padding-left:40px;
-}
+  .menu-btn{
+    width:40px; height:32px;
+    position:relative;
+    cursor:pointer;
+    background:none;
+    border:none;
+  }
+  .menu-btn span{
+    position:absolute;
+    left:0; right:0;
+    height:2px;
+    background:var(--cream);
+    transition:0.25s ease;
+  }
+  .menu-btn span:nth-child(1){ top:4px; }
+  .menu-btn span:nth-child(2){ top:15px; }
+  .menu-btn span:nth-child(3){ top:26px; }
+  .menu-btn:hover span{ background:var(--gold); }
 
-.close-btn{
-position:absolute;
-top:15px;
-right:25px;
-font-size:40px;
-cursor:pointer;
-}
+  /* ============ SIDEBAR ============ */
+  .sidebar{
+    position:fixed;
+    top:0; right:-320px;
+    width:300px; max-width:82vw;
+    height:100vh;
+    background:var(--turf-panel-2);
+    border-left:1px solid var(--hairline-strong);
+    padding-top:90px;
+    transition:right 0.35s ease;
+    z-index:2000;
+    overflow-y:auto;
+  }
+  .sidebar.active{ right:0; }
 
-/* HERO */
+  .sidebar-label{
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:2px;
+    color:var(--cream-dim);
+    padding:0 28px 14px;
+  }
 
-.hero{
-height:100vh;
-background:
-linear-gradient(rgba(0,0,0,0.7),rgba(0,0,0,0.7)),
-url("https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=1500&q=80");
+  .sidebar a{
+    display:block;
+    padding:15px 28px;
+    font-size:16px;
+    font-weight:600;
+    border-top:1px solid var(--hairline);
+    transition:0.2s;
+  }
+  .sidebar a:last-child{ border-bottom:1px solid var(--hairline); }
+  .sidebar a:hover{
+    background:var(--ball-red);
+    color:var(--cream);
+    padding-left:36px;
+  }
 
-background-size:cover;
-background-position:center;
+  .close-btn{
+    position:absolute;
+    top:18px; right:24px;
+    font-size:30px;
+    line-height:1;
+    background:none;
+    border:none;
+    color:var(--cream);
+    cursor:pointer;
+  }
+  .close-btn:hover{ color:var(--gold); }
 
-display:flex;
-flex-direction:column;
-justify-content:center;
-align-items:center;
-text-align:center;
-padding:20px;
-}
+  .scrim{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.5);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.35s ease;
+    z-index:1500;
+  }
+  .scrim.active{ opacity:1; pointer-events:auto; }
 
-.hero h1{
-font-size:70px;
-color:gold;
-margin-bottom:15px;
-text-shadow:0 0 20px rgba(255,215,0,0.4);
-}
+  /* ============ HERO ============ */
+  .hero{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:140px 6% 100px;
+    position:relative;
+    background:
+      linear-gradient(180deg, rgba(8,20,14,0.55) 0%, rgba(8,17,12,0.88) 78%, var(--turf-dark) 100%),
+      url("https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=1500&q=80");
+    background-size:cover;
+    background-position:center 30%;
+  }
 
-.hero p{
-font-size:20px;
-max-width:800px;
-line-height:1.8;
-margin-bottom:35px;
-color:#f1f1f1;
-}
+  .hero-inner{
+    max-width:760px;
+  }
 
-.hero button{
-padding:16px 38px;
-border:none;
-border-radius:50px;
-background:gold;
-font-size:18px;
-font-weight:bold;
-cursor:pointer;
-transition:0.3s;
-box-shadow:0 6px 18px rgba(255,215,0,0.4);
-}
+  .hero h1{
+    font-family:var(--font-display);
+    font-size:clamp(48px, 9vw, 104px);
+    line-height:0.94;
+    letter-spacing:0.5px;
+    color:var(--cream);
+    opacity:0;
+    animation:riseIn 0.8s ease forwards;
+  }
 
-.hero button:hover{
-background:white;
-transform:translateY(-4px);
-}
+  .hero h1 em{
+    font-style:normal;
+    color:var(--ball-red);
+  }
 
-/* OWNER SECTION */
+  .hero p{
+    margin-top:24px;
+    max-width:52ch;
+    font-size:17px;
+    line-height:1.75;
+    color:var(--cream-dim);
+    opacity:0;
+    animation:riseIn 0.8s ease forwards;
+    animation-delay:0.15s;
+  }
 
-.owner-section{
-padding:70px 8%;
-background:#081f18;
-text-align:center;
-}
+  .hero-actions{
+    margin-top:38px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:16px;
+    opacity:0;
+    animation:riseIn 0.8s ease forwards;
+    animation-delay:0.3s;
+  }
 
-.owner-box{
-background:#102d24;
-padding:40px;
-border-radius:20px;
-max-width:700px;
-margin:auto;
-box-shadow:0 10px 25px rgba(0,0,0,0.4);
-border:1px solid rgba(255,215,0,0.1);
-}
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:15px 30px;
+    font-family:var(--font-body);
+    font-weight:600;
+    font-size:15px;
+    border-radius:3px;
+    cursor:pointer;
+    transition:0.25s ease;
+    border:1px solid transparent;
+  }
 
-.owner-box h2{
-color:gold;
-font-size:38px;
-margin-bottom:15px;
-}
+  .btn-primary{
+    background:var(--ball-red);
+    color:var(--cream);
+  }
+  .btn-primary:hover{
+    background:#a5301f;
+    transform:translateY(-2px);
+  }
 
-.owner-box p{
-font-size:18px;
-line-height:1.8;
-color:#ddd;
-}
+  .btn-ghost{
+    border:1px solid var(--hairline-strong);
+    color:var(--cream);
+    background:transparent;
+  }
+  .btn-ghost:hover{
+    border-color:var(--gold);
+    color:var(--gold);
+  }
 
-/* FEATURES */
+  @keyframes riseIn{
+    from{ opacity:0; transform:translateY(16px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
 
-.features{
-padding:90px 8%;
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-gap:30px;
-background:#071a14;
-}
+  /* ============ TICKER ============ */
+  .ticker-strip{
+    background:var(--ball-red-dark);
+    border-top:1px solid rgba(241,234,216,0.1);
+    border-bottom:1px solid rgba(241,234,216,0.1);
+    overflow:hidden;
+    white-space:nowrap;
+  }
 
-.card{
-background:#102d24;
-padding:35px 25px;
-border-radius:20px;
-text-align:center;
-transition:0.4s;
-border:1px solid rgba(255,215,0,0.1);
-}
+  .ticker-track{
+    display:inline-flex;
+    animation:scrollTicker 32s linear infinite;
+    padding:14px 0;
+  }
 
-.card:hover{
-transform:translateY(-10px);
-box-shadow:0 10px 25px rgba(0,0,0,0.5);
-}
+  .ticker-track span{
+    font-family:var(--font-mono);
+    font-size:13px;
+    letter-spacing:1px;
+    color:var(--cream);
+    padding:0 28px;
+    border-right:1px solid rgba(241,234,216,0.2);
+  }
 
-.card h3{
-color:gold;
-font-size:24px;
-margin-bottom:15px;
-}
+  @keyframes scrollTicker{
+    from{ transform:translateX(0); }
+    to{ transform:translateX(-50%); }
+  }
 
-.card p{
-line-height:1.8;
-color:#d9d9d9;
-}
+  /* ============ DIRECTOR ============ */
+  .director{
+    padding:100px 6% 80px;
+  }
 
-/* FOOTER */
+  .director-panel{
+    max-width:760px;
+    background:var(--turf-panel);
+    border-left:3px solid var(--ball-red);
+    padding:38px 42px;
+  }
 
-footer{
-background:black;
-padding:25px;
-text-align:center;
-font-size:15px;
-color:#aaa;
-}
+  .director-kicker{
+    font-family:var(--font-mono);
+    font-size:12px;
+    letter-spacing:2px;
+    color:var(--gold);
+    margin-bottom:14px;
+  }
 
-/* RESPONSIVE */
+  .director-panel h2{
+    font-family:var(--font-display);
+    font-size:34px;
+    letter-spacing:0.5px;
+    margin-bottom:16px;
+  }
 
-@media(max-width:768px){
+  .director-panel p{
+    font-size:16px;
+    line-height:1.8;
+    color:var(--cream-dim);
+  }
 
-.hero h1{
-font-size:42px;
-}
+  .director-panel b{
+    color:var(--cream);
+    font-weight:600;
+  }
 
-.hero p{
-font-size:16px;
-}
+  /* ============ THE OVERS (feature list) ============ */
+  .overs{
+    padding:20px 6% 100px;
+  }
 
-.sidebar{
-width:260px;
-}
+  .overs-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    margin-bottom:10px;
+    border-bottom:1px solid var(--hairline-strong);
+    padding-bottom:22px;
+  }
 
-.owner-box h2{
-font-size:30px;
-}
+  .overs-head h2{
+    font-family:var(--font-display);
+    font-size:38px;
+    letter-spacing:0.5px;
+  }
 
-}
+  .overs-head span{
+    font-family:var(--font-mono);
+    font-size:12px;
+    color:var(--cream-dim);
+    letter-spacing:1px;
+  }
+
+  .over-row{
+    display:flex;
+    align-items:center;
+    gap:28px;
+    padding:26px 4px;
+    border-bottom:1px solid var(--hairline);
+    transition:0.25s ease;
+    position:relative;
+  }
+
+  .over-row:hover{
+    padding-left:14px;
+    background:rgba(241,234,216,0.03);
+  }
+
+  .over-row::before{
+    content:"";
+    position:absolute;
+    left:0; top:0; bottom:0;
+    width:3px;
+    background:var(--ball-red);
+    transform:scaleY(0);
+    transition:transform 0.25s ease;
+  }
+  .over-row:hover::before{ transform:scaleY(1); }
+
+  .over-num{
+    font-family:var(--font-mono);
+    font-size:13px;
+    color:var(--gold);
+    width:64px;
+    flex-shrink:0;
+    letter-spacing:1px;
+  }
+
+  .over-body{ flex:1; min-width:0; }
+
+  .over-body h3{
+    font-family:var(--font-display);
+    font-size:24px;
+    font-weight:400;
+    letter-spacing:0.3px;
+    margin-bottom:4px;
+  }
+
+  .over-body p{
+    font-size:14.5px;
+    color:var(--cream-dim);
+    line-height:1.6;
+    max-width:52ch;
+  }
+
+  .over-arrow{
+    flex-shrink:0;
+    color:var(--cream-dim);
+    transition:0.25s ease;
+  }
+  .over-row:hover .over-arrow{
+    color:var(--gold);
+    transform:translateX(4px);
+  }
+
+  /* ============ FOOTER ============ */
+  footer{
+    padding:30px 6%;
+    border-top:1px solid var(--hairline);
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+    font-size:13px;
+    color:var(--cream-dim);
+  }
+
+  footer .wordmark{ font-size:16px; }
+
+  /* ============ RESPONSIVE ============ */
+  @media(max-width:640px){
+    .hero{ padding-top:120px; }
+    .director-panel{ padding:28px 24px; }
+    .over-row{ gap:16px; }
+    .over-num{ width:44px; font-size:11px; }
+    .over-body h3{ font-size:20px; }
+    footer{ flex-direction:column; text-align:center; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    .hero h1, .hero p, .hero-actions{ animation:none; opacity:1; }
+    .ticker-track{ animation:none; }
+  }
 
 </style>
-
 </head>
 
 <body>
 
-<!-- HEADER -->
-
 <header>
-
-<div class="logo">🏏 SUPER SIXES</div>
-
-<div class="menu-btn" onclick="openMenu()">☰</div>
-
+  <a href="index.html" class="wordmark">
+    <span class="stitch"></span>
+    SUPER SIXES
+  </a>
+  <button class="menu-btn" aria-label="Open menu" aria-expanded="false" onclick="openMenu()">
+    <span></span><span></span><span></span>
+  </button>
 </header>
 
-<!-- SIDEBAR MENU -->
+<div class="scrim" id="scrim" onclick="closeMenu()"></div>
 
-<div class="sidebar" id="sidebar">
-
-<div class="close-btn" onclick="closeMenu()">×</div>
-
-<a href="register.html">🏏 Register Team</a>
-
-<a href="teams.html">👥 Registered Teams</a>
-
-<!-- ❌ REMOVED: Team Squads -->
-
-<a href="fixtures.html">📋 Fixtures</a>
-
-<a href="points.html">📊 Points Table</a>
-
-<a href="scoring.html">📡 Live Score</a>
-
-<a href="admin.html">⚙ Admin Panel</a>
-
-</div>
-
-<!-- HERO -->
+<nav class="sidebar" id="sidebar" aria-label="Site navigation">
+  <button class="close-btn" aria-label="Close menu" onclick="closeMenu()">&times;</button>
+  <div class="sidebar-label">MENU</div>
+  <a href="register.html">Register Team</a>
+  <a href="teams.html">Registered Teams</a>
+  <a href="fixtures.html">Fixtures</a>
+  <a href="points.html">Points Table</a>
+  <a href="admin.html">Admin Panel</a>
+</nav>
 
 <section class="hero">
-
-<h1>SUPER SIXES CRICKET TOURNAMENT</h1>
-
-<p>
-Experience the ultimate local cricket tournament with live scoring,
-team squads, exciting fixtures, and real-time points table updates.
-Join the competition and become champions.
-</p>
-
-<button onclick="location.href='register.html'">
-Register Your Team
-</button>
-
+  <div class="hero-inner">
+    <h1>Six overs.<br>One night.<br>One <em>champion</em>.</h1>
+    <p>
+      The Super Sixes Cricket Tournament brings local teams together for a
+      fast, floodlit knockout — every over live-scored, every run on the
+      points table before the next ball is bowled.
+    </p>
+    <div class="hero-actions">
+      <button class="btn btn-primary" onclick="location.href='register.html'">Register Your Team</button>
+      <button class="btn btn-ghost" onclick="location.href='fixtures.html'">See Fixtures</button>
+    </div>
+  </div>
 </section>
 
-<!-- OWNER -->
-
-<section class="owner-section">
-
-<div class="owner-box">
-
-<h2>🏟 Ground Owner</h2>
-
-<p>
-This cricket tournament is proudly organized and managed under the
-leadership of <b style="color:gold;">Sami Yasinzai</b>,
-providing players and cricket lovers a professional and exciting
-local cricket experience.
-</p>
-
+<div class="ticker-strip">
+  <div class="ticker-track">
+    <span>6-OVER FORMAT</span>
+    <span>KNOCKOUT DRAW</span>
+    <span>LIVE BALL-BY-BALL SCORING</span>
+    <span>NET RUN RATE TIEBREAKS</span>
+    <span>FLOODLIT FIXTURES</span>
+    <span>6-OVER FORMAT</span>
+    <span>KNOCKOUT DRAW</span>
+    <span>LIVE BALL-BY-BALL SCORING</span>
+    <span>NET RUN RATE TIEBREAKS</span>
+    <span>FLOODLIT FIXTURES</span>
+  </div>
 </div>
 
+<section class="director">
+  <div class="director-panel">
+    <div class="director-kicker">TOURNAMENT DIRECTOR</div>
+    <h2>Run by Sami Yasinzai</h2>
+    <p>
+      Super Sixes is organised and managed by <b>Sami Yasinzai</b>, giving
+      local players and cricket lovers a properly run tournament — fair
+      draws, a maintained ground, and scoring you can actually trust.
+    </p>
+  </div>
 </section>
 
-<!-- FEATURES -->
+<section class="overs">
+  <div class="overs-head">
+    <h2>How it works</h2>
+    <span>4 STEPS</span>
+  </div>
 
-<section class="features">
+  <a href="register.html" class="over-row">
+    <span class="over-num">OVER 1</span>
+    <span class="over-body">
+      <h3>Register Team</h3>
+      <p>Sign your squad up and lock in your place in the draw.</p>
+    </span>
+    <svg class="over-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+  </a>
 
-<div class="card">
-<h3>🏏 Team Registration</h3>
-<p>Register your cricket team online and participate in the biggest Super Sixes tournament.</p>
-</div>
+  <a href="teams.html" class="over-row">
+    <span class="over-num">OVER 2</span>
+    <span class="over-body">
+      <h3>Registered Teams</h3>
+      <p>See every squad that's entered, captains and all.</p>
+    </span>
+    <svg class="over-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+  </a>
 
-<div class="card">
-<h3>👥 Registered Teams</h3>
-<p>View all registered teams with logos, captain names, and tournament status.</p>
-</div>
+  <a href="fixtures.html" class="over-row">
+    <span class="over-num">OVER 3</span>
+    <span class="over-body">
+      <h3>Fixtures</h3>
+      <p>The full schedule — who's playing who, and when.</p>
+    </span>
+    <svg class="over-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+  </a>
 
-<div class="card">
-<h3>📋 Match Fixtures</h3>
-<p>Check automatic tournament fixtures and upcoming match schedules.</p>
-</div>
-
-<div class="card">
-<h3>📊 Points Table</h3>
-<p>Track rankings, wins, losses, and net run rate updates live.</p>
-</div>
-
-<div class="card">
-<h3>📡 Live Scoring</h3>
-<p>Follow live cricket scores and every exciting moment of the matches.</p>
-</div>
+  <a href="points.html" class="over-row">
+    <span class="over-num">OVER 4</span>
+    <span class="over-body">
+      <h3>Points Table</h3>
+      <p>Wins, losses, and net run rate, updated after every match.</p>
+    </span>
+    <svg class="over-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+  </a>
 
 </section>
-
-<!-- FOOTER -->
 
 <footer>
-<p>© 2026 SUPER SIXES CRICKET TOURNAMENT | Managed by Sami Yasinzai</p>
+  <span class="wordmark"><span class="stitch"></span>SUPER SIXES</span>
+  <span>&copy; 2026 Super Sixes Cricket Tournament — Managed by Sami Yasinzai</span>
 </footer>
 
-<!-- JS -->
-
 <script>
+  const sidebar = document.getElementById('sidebar');
+  const scrim = document.getElementById('scrim');
+  const menuBtn = document.querySelector('.menu-btn');
 
-function openMenu(){
-document.getElementById("sidebar").classList.add("active");
-}
-
-function closeMenu(){
-document.getElementById("sidebar").classList.remove("active");
-}
-
+  function openMenu(){
+    sidebar.classList.add('active');
+    scrim.classList.add('active');
+    menuBtn.setAttribute('aria-expanded','true');
+  }
+  function closeMenu(){
+    sidebar.classList.remove('active');
+    scrim.classList.remove('active');
+    menuBtn.setAttribute('aria-expanded','false');
+  }
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape') closeMenu();
+  });
 </script>
 
 </body>
