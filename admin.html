@@ -901,7 +901,6 @@ if (!data || data.length === 0) {
 
 container.innerHTML = data.map(team => {
   let players = team.squad;
-
   if (typeof players === "string") {
     try {
       players = JSON.parse(players);
