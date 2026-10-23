@@ -440,12 +440,12 @@ document.getElementById("registerForm").addEventListener("submit", async functio
           "Prefer": "return=minimal"
         },
         body: JSON.stringify({
-          team_name: teamName,
-          captain_name: captain,
-          vice_captain_name: viceCaptain || null,
-          squad_members: players,
-          phone: contact
-        })
+  team_name: teamName,
+  captain_name: captain,
+  vice_captain: viceCaptain || null,
+  squad: players,
+  phone: contact
+})
       }
     );
 
