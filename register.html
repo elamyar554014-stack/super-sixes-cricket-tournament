@@ -464,14 +464,16 @@ document.getElementById("registerForm").addEventListener("submit", async functio
     logoDataUrl = "";
     document.getElementById("logoPreview").src =
       "https://cdn-icons-png.flaticon.com/512/857/857455.png";
-  } catch(error) {
-    console.error("Registration submission failed:", error);
-    msg.className = "err";
-    msg.innerText = "Registration could not be submitted. Please try again or contact the tournament admin.";
-  } finally {
-    submitButton.disabled = false;
-    submitButton.style.opacity = "";
-  }
+ } catch(error) {
+console.error("Registration submission failed:", error);
+
+msg.className = "err";
+msg.innerText = "Registration failed: " + error.message;
+
+} finally {
+submitButton.disabled = false;
+submitButton.style.opacity = "";
+}
 });
 
 </script>
