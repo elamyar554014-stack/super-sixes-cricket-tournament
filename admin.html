@@ -865,6 +865,7 @@ async function login() {
     loginMsg.textContent = "";
 
     refresh();
+    loadSupabaseRegistrations();
   } catch (error) {
     console.error("Login error:", error);
     loginMsg.textContent = "Could not connect. Please try again.";
