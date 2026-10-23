@@ -1,147 +1,281 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register Team | Super Sixes</title>
 
-<title>Team Registration | SUPER SIXES</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial,sans-serif;
-}
+  :root{
+    --turf-dark:    #0A1B13;
+    --turf-panel:   #102A1D;
+    --turf-panel-2: #0D2318;
+    --cream:        #F1EAD8;
+    --cream-dim:    #B9AF98;
+    --ball-red:     #C0392B;
+    --gold:         #D9A441;
+    --run-green:    #7FB37A;
+    --hairline:         rgba(241,234,216,0.14);
+    --hairline-strong:  rgba(241,234,216,0.26);
 
-body{
-background:#071a14;
-color:white;
-padding:30px 15px;
-}
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-body:    'Work Sans', sans-serif;
+    --font-mono:    'Space Mono', monospace;
+  }
 
-.container{
-max-width:900px;
-margin:auto;
-background:#0d2d24;
-padding:25px;
-border-radius:20px;
-border:1px solid rgba(255,215,0,0.15);
-}
+  *{ margin:0; padding:0; box-sizing:border-box; font-family:var(--font-body); }
 
-/* TITLE */
+  body{
+    background:var(--turf-dark);
+    color:var(--cream);
+    padding-bottom:80px;
+  }
 
-h1{
-text-align:center;
-color:gold;
-margin-bottom:25px;
-font-size:40px;
-}
+  :focus-visible{ outline:2px solid var(--gold); outline-offset:3px; }
 
-/* BACK BUTTON */
+  /* ============ HEADER ============ */
+  header{
+    background:rgba(10,27,19,0.92);
+    padding:22px 6%;
+    border-bottom:1px solid var(--hairline-strong);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:14px;
+  }
 
-.back-btn{
-display:inline-block;
-background:gold;
-color:black;
-padding:10px 20px;
-border-radius:40px;
-text-decoration:none;
-font-weight:bold;
-margin-bottom:20px;
-}
+  .h-left{ display:flex; align-items:center; gap:12px; }
 
-.back-btn:hover{
-background:white;
-}
+  header .tag{
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:2px;
+    color:var(--gold);
+    border:1px solid var(--gold);
+    padding:4px 8px;
+  }
 
-/* INPUT */
+  header h1{
+    font-family:var(--font-display);
+    font-size:26px;
+    letter-spacing:0.5px;
+    font-weight:400;
+  }
 
-input{
-width:100%;
-padding:14px;
-margin:10px 0;
-border:none;
-border-radius:10px;
-outline:none;
-font-size:15px;
-}
+  .back-btn{
+    border:1px solid var(--hairline-strong);
+    color:var(--cream);
+    padding:10px 18px;
+    border-radius:3px;
+    text-decoration:none;
+    font-weight:600;
+    font-size:13px;
+    transition:0.25s ease;
+    white-space:nowrap;
+  }
+  .back-btn:hover{
+    border-color:var(--gold);
+    color:var(--gold);
+  }
 
-/* FILE */
+  /* ============ FORM WRAP ============ */
+  .form-wrap{
+    max-width:760px;
+    margin:44px auto 0;
+    padding:0 6%;
+  }
 
-input[type="file"]{
-background:white;
-color:black;
-}
+  .intro{
+    color:var(--cream-dim);
+    font-size:14.5px;
+    line-height:1.7;
+    max-width:56ch;
+    margin-bottom:30px;
+  }
 
-/* BUTTON */
+  .card{
+    background:var(--turf-panel);
+    border-left:3px solid var(--ball-red);
+    padding:28px 30px;
+    margin-bottom:22px;
+  }
 
-button{
-width:100%;
-padding:14px;
-margin-top:20px;
-border:none;
-border-radius:10px;
-background:gold;
-font-weight:bold;
-font-size:16px;
-cursor:pointer;
-transition:0.3s;
-}
+  .card h3{
+    font-family:var(--font-display);
+    font-size:22px;
+    font-weight:400;
+    letter-spacing:0.3px;
+    margin-bottom:6px;
+  }
 
-button:hover{
-background:white;
-transform:scale(1.02);
-}
+  .card .card-sub{
+    font-size:13px;
+    color:var(--cream-dim);
+    margin-bottom:20px;
+  }
 
-/* PLAYER TITLE */
+  label{
+    display:block;
+    margin-top:16px;
+    margin-bottom:6px;
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:1px;
+    color:var(--cream-dim);
+  }
 
-.player-title{
-margin-top:20px;
-margin-bottom:10px;
-font-size:22px;
-color:gold;
-}
+  label:first-of-type{ margin-top:0; }
 
-/* MESSAGE */
+  label .req{ color:var(--ball-red); }
 
-#msg{
-text-align:center;
-margin-top:15px;
-font-weight:bold;
-font-size:18px;
-color:lightgreen;
-}
+  input{
+    width:100%;
+    padding:12px 14px;
+    border-radius:3px;
+    outline:none;
+    background:var(--turf-panel-2);
+    color:var(--cream);
+    border:1px solid var(--hairline-strong);
+    font-family:var(--font-body);
+    font-size:15px;
+    transition:0.2s ease;
+  }
 
-/* PREVIEW */
+  input::placeholder{ color:var(--cream-dim); opacity:0.6; }
 
-#preview{
-display:none;
-width:130px;
-height:130px;
-object-fit:cover;
-border-radius:15px;
-border:3px solid gold;
-margin:15px auto;
-background:white;
-}
+  input:focus{
+    border-color:var(--gold);
+    box-shadow:0 0 0 3px rgba(217,164,65,0.18);
+  }
 
-/* RESPONSIVE */
+  input.invalid{
+    border-color:var(--ball-red);
+    box-shadow:0 0 0 3px rgba(192,57,43,0.18);
+  }
 
-@media(max-width:600px){
+  .field-hint{
+    margin-top:6px;
+    font-size:12.5px;
+    color:var(--ball-red);
+    display:none;
+  }
+  .field-hint.show{ display:block; }
 
-h1{
-font-size:30px;
-}
+  /* LOGO UPLOAD */
+  .logo-row{
+    display:flex;
+    align-items:center;
+    gap:18px;
+  }
 
-.container{
-padding:18px;
-}
+  .logo-preview{
+    width:64px;
+    height:64px;
+    border-radius:10px;
+    object-fit:cover;
+    border:1px solid var(--hairline-strong);
+    background:var(--turf-panel-2);
+    flex-shrink:0;
+  }
 
-}
+  .logo-input-wrap{ flex:1; }
+
+  input[type="file"]{
+    padding:9px;
+    font-size:13px;
+    color:var(--cream-dim);
+  }
+
+  /* SQUAD GRID */
+  .squad-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-top:4px;
+    margin-bottom:14px;
+  }
+
+  .squad-head span{
+    font-family:var(--font-mono);
+    font-size:12px;
+    letter-spacing:1.5px;
+    color:var(--gold);
+  }
+
+  .squad-head em{
+    font-style:normal;
+    font-size:12px;
+    color:var(--cream-dim);
+  }
+
+  .squad-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:10px;
+  }
+
+  .player-field{
+    position:relative;
+  }
+
+  .player-field .num{
+    position:absolute;
+    left:14px;
+    top:50%;
+    transform:translateY(-50%);
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:var(--gold);
+    pointer-events:none;
+  }
+
+  .player-field input{
+    padding-left:38px;
+  }
+
+  /* SUBMIT */
+  .submit-row{
+    display:flex;
+    align-items:center;
+    gap:18px;
+    flex-wrap:wrap;
+  }
+
+  button{
+    padding:15px 30px;
+    background:var(--ball-red);
+    color:var(--cream);
+    border:none;
+    border-radius:3px;
+    font-family:var(--font-body);
+    font-weight:600;
+    font-size:15px;
+    cursor:pointer;
+    transition:0.2s ease;
+  }
+  button:hover{
+    background:#a5301f;
+    transform:translateY(-2px);
+  }
+
+  #msg{
+    font-size:13.5px;
+    font-weight:600;
+  }
+  #msg.ok{ color:var(--run-green); }
+  #msg.err{ color:var(--ball-red); }
+
+  @media(max-width:600px){
+    header h1{ font-size:20px; }
+    .card{ padding:22px 20px; }
+    .form-wrap{ margin-top:30px; }
+  }
 
 </style>
 
@@ -149,314 +283,190 @@ padding:18px;
 
 <body>
 
-<div class="container">
+<header>
+  <div class="h-left">
+    <span class="tag">ENTRY</span>
+    <h1>Register Team</h1>
+  </div>
+  <a href="index.html" class="back-btn">&larr; Back Home</a>
+</header>
 
-<a href="index.html" class="back-btn">
-← Back Home
-</a>
+<div class="form-wrap">
 
-<h1>🏏 Team Registration</h1>
+  <p class="intro">
+    Enter your squad's details below. Team name, captain and contact number
+    are required — everything else, including your full 16-player squad,
+    can be filled in now or edited later from your entry.
+  </p>
 
-<!-- TEAM DETAILS -->
+  <form id="registerForm">
 
-<input
-type="text"
-id="teamName"
-placeholder="Team Name">
+    <div class="card">
+      <h3>Team Details</h3>
+      <div class="card-sub">Basic info for the draw and points table.</div>
 
-<input
-type="text"
-id="captain"
-placeholder="Captain Name">
+      <label>Team Name <span class="req">*</span></label>
+      <input type="text" id="teamName" placeholder="e.g. Turf Titans" required>
+      <div class="field-hint" id="teamNameHint">This team name is already registered. Please choose a different one.</div>
 
-<input
-type="text"
-id="viceCaptain"
-placeholder="Vice Captain Name">
+      <label>Team Logo</label>
+      <div class="logo-row">
+        <img class="logo-preview" id="logoPreview" src="https://cdn-icons-png.flaticon.com/512/857/857455.png">
+        <div class="logo-input-wrap">
+          <input type="file" id="logoFile" accept="image/*">
+        </div>
+      </div>
 
-<input
-type="text"
-id="contact"
-placeholder="Contact Number">
+      <label>Captain <span class="req">*</span></label>
+      <input type="text" id="captain" placeholder="Captain's full name" required>
 
-<!-- LOGO -->
+      <label>Vice Captain</label>
+      <input type="text" id="viceCaptain" placeholder="Vice captain's full name">
 
-<input
-type="file"
-id="logo"
-accept="image/*">
+      <label>Contact Number <span class="req">*</span></label>
+      <input type="tel" id="contact" placeholder="e.g. 0300 1234567" required>
+    </div>
 
-<img id="preview">
+    <div class="card">
+      <div class="squad-head">
+        <span>SQUAD</span>
+        <em>UP TO 16 PLAYERS · LEAVE UNUSED SLOTS BLANK</em>
+      </div>
+      <div class="squad-grid" id="squadGrid"></div>
+    </div>
 
-<!-- PLAYERS -->
+    <div class="submit-row">
+      <button type="submit">Submit Registration</button>
+      <span id="msg"></span>
+    </div>
 
-<h3 class="player-title">
-🏏 Players Squad
-</h3>
-
-<div id="players"></div>
-
-<!-- BUTTON -->
-
-<button onclick="registerTeam()">
-Register Team
-</button>
-
-<div id="msg"></div>
+  </form>
 
 </div>
 
 <script>
 
-/* CREATE PLAYER INPUTS */
+/* BUILD 16 PLAYER FIELDS */
 
-const playersDiv =
-document.getElementById("players")
+let squadGrid = document.getElementById("squadGrid")
 
-for(let i=1;i<=16;i++){
-
-let input =
-document.createElement("input")
-
-input.type = "text"
-
-input.id = "p"+i
-
-input.placeholder = "Player " + i
-
-/* MOVE TO NEXT INPUT */
-
-input.addEventListener("keydown",function(event){
-
-if(event.key === "Enter"){
-
-event.preventDefault()
-
-let next =
-document.getElementById("p"+(i+1))
-
-if(next){
-
-next.focus()
-
+for(let i=1; i<=16; i++){
+  squadGrid.innerHTML += `
+    <div class="player-field">
+      <span class="num">${String(i).padStart(2,'0')}</span>
+      <input type="text" id="player${i}" placeholder="Player ${i} name">
+    </div>
+  `
 }
-
-}
-
-})
-
-playersDiv.appendChild(input)
-
-}
-
-/* MAIN INPUTS NEXT */
-
-document.getElementById("teamName")
-.addEventListener("keydown",function(e){
-
-if(e.key==="Enter"){
-
-e.preventDefault()
-
-document.getElementById("captain").focus()
-
-}
-
-})
-
-document.getElementById("captain")
-.addEventListener("keydown",function(e){
-
-if(e.key==="Enter"){
-
-e.preventDefault()
-
-document.getElementById("viceCaptain").focus()
-
-}
-
-})
-
-document.getElementById("viceCaptain")
-.addEventListener("keydown",function(e){
-
-if(e.key==="Enter"){
-
-e.preventDefault()
-
-document.getElementById("contact").focus()
-
-}
-
-})
-
-document.getElementById("contact")
-.addEventListener("keydown",function(e){
-
-if(e.key==="Enter"){
-
-e.preventDefault()
-
-document.getElementById("p1").focus()
-
-}
-
-})
 
 /* LOGO PREVIEW */
 
-document.getElementById("logo")
-.addEventListener("change",function(event){
+let logoDataUrl = ""
 
-const file = event.target.files[0]
+document.getElementById("logoFile").addEventListener("change", function(e){
 
-if(!file) return
+  let file = e.target.files[0]
+  if(!file) return
 
-const reader = new FileReader()
+  let reader = new FileReader()
 
-reader.onload = function(e){
+  reader.onload = function(evt){
+    logoDataUrl = evt.target.result
+    document.getElementById("logoPreview").src = logoDataUrl
+  }
 
-const preview =
-document.getElementById("preview")
-
-preview.src = e.target.result
-
-preview.style.display = "block"
-
-}
-
-reader.readAsDataURL(file)
+  reader.readAsDataURL(file)
 
 })
 
-/* REGISTER TEAM */
+/* HELPERS */
 
-function registerTeam(){
-
-let teamName =
-document.getElementById("teamName")
-.value.trim()
-
-let captain =
-document.getElementById("captain")
-.value.trim()
-
-let viceCaptain =
-document.getElementById("viceCaptain")
-.value.trim()
-
-let contact =
-document.getElementById("contact")
-.value.trim()
-
-/* VALIDATION */
-
-if(teamName === ""){
-
-alert("Enter Team Name")
-
-return
-
+function getExistingTeams(){
+  try{
+    return JSON.parse(localStorage.getItem("teams")) || []
+  }catch(error){
+    return []
+  }
 }
 
-/* TEAMS */
+function isNameTaken(name){
+  let existing = getExistingTeams()
+  let normalized = name.trim().toLowerCase()
+  return existing.some(t => (t.teamName || "").trim().toLowerCase() === normalized)
+}
 
-let teams =
-JSON.parse(localStorage.getItem("teams")) || []
+/* LIVE CHECK AS THEY TYPE / LEAVE THE FIELD */
 
-/* DUPLICATE CHECK */
+let teamNameInput = document.getElementById("teamName")
+let teamNameHint = document.getElementById("teamNameHint")
 
-let exists = teams.some(team => {
+function checkTeamNameField(){
+  let name = teamNameInput.value.trim()
+  let taken = name !== "" && isNameTaken(name)
+  teamNameInput.classList.toggle("invalid", taken)
+  teamNameHint.classList.toggle("show", taken)
+  return !taken
+}
 
-return (
-team.teamName &&
-team.teamName.toLowerCase() ===
-teamName.toLowerCase()
-)
+teamNameInput.addEventListener("input", checkTeamNameField)
+teamNameInput.addEventListener("blur", checkTeamNameField)
+
+/* SUBMIT */
+
+document.getElementById("registerForm").addEventListener("submit", function(e){
+
+  e.preventDefault()
+
+  let msg = document.getElementById("msg")
+
+  let teamName = document.getElementById("teamName").value.trim()
+  let captain = document.getElementById("captain").value.trim()
+  let viceCaptain = document.getElementById("viceCaptain").value.trim()
+  let contact = document.getElementById("contact").value.trim()
+
+  if(!teamName || !captain || !contact){
+    msg.className = "err"
+    msg.innerText = "Please fill in Team Name, Captain, and Contact Number."
+    return
+  }
+
+  if(!checkTeamNameField()){
+    msg.className = "err"
+    msg.innerText = "That team name is already taken. Please choose a different one."
+    teamNameInput.focus()
+    return
+  }
+
+  let players = []
+
+  for(let i=1; i<=16; i++){
+    let val = document.getElementById("player"+i).value.trim()
+    players.push(val)
+  }
+
+  let teams = getExistingTeams()
+
+  teams.push({
+    teamName,
+    captain,
+    viceCaptain,
+    contact,
+    logo: logoDataUrl,
+    players
+  })
+
+  localStorage.setItem("teams", JSON.stringify(teams))
+
+  msg.className = "ok"
+  msg.innerText = "Team registered! Redirecting to Registered Teams..."
+
+  setTimeout(function(){
+    window.location = "teams.html"
+  }, 1200)
 
 })
-
-if(exists){
-
-alert("❌ Team Name Already Exists")
-
-return
-
-}
-
-/* PLAYERS */
-
-let players = []
-
-for(let i=1;i<=16;i++){
-
-players.push(
-document.getElementById("p"+i)
-.value.trim()
-)
-
-}
-
-/* LOGO */
-
-const file =
-document.getElementById("logo")
-.files[0]
-
-if(!file){
-
-alert("Select Team Logo")
-
-return
-
-}
-
-const reader = new FileReader()
-
-reader.onload = function(e){
-
-let team = {
-
-teamName:teamName,
-captain:captain,
-viceCaptain:viceCaptain,
-contact:contact,
-players:players,
-logo:e.target.result
-
-}
-
-/* SAVE */
-
-teams.push(team)
-
-localStorage.setItem(
-"teams",
-JSON.stringify(teams)
-)
-
-/* MESSAGE */
-
-document.getElementById("msg")
-.innerText =
-"✅ Team Registered Successfully"
-
-/* RELOAD */
-
-setTimeout(function(){
-
-location.reload()
-
-},1200)
-
-}
-
-reader.readAsDataURL(file)
-
-}
 
 </script>
 
 </body>
-
 </html>
