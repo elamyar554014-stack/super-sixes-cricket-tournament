@@ -424,6 +424,28 @@ td {
     </div>
   </section>
 
+  <!-- SUPABASE REGISTRATIONS -->
+
+<div class="card">
+  <div class="responses-heading">
+    <h2>SUPABASE TEAM REGISTRATIONS</h2>
+    <button class="green" onclick="loadSupabaseRegistrations()">
+      Refresh Registrations
+    </button>
+  </div>
+
+  <p class="muted">
+    Teams submitted through the online registration form appear here.
+  </p>
+
+  <p id="supabaseRegistrationMessage" class="msg" aria-live="polite">
+  </p>
+
+  <div id="supabaseRegistrationsList" class="grid">
+    <p class="muted">Click Refresh Registrations to load teams.</p>
+  </div>
+</div> 
+  
   <!-- FIXTURES -->
 
   <section id="fixturesSection" class="section">
@@ -815,7 +837,7 @@ function makeId() {
     Math.random().toString(36).slice(2,5);
 }
 
-async function login() {
+async function login() { 
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
   const loginMsg = document.getElementById("loginMsg");
@@ -849,6 +871,84 @@ async function login() {
   }
 }
 
+  async function loadSupabaseRegistrations() {
+const message = document.getElementById("supabaseRegistrationMessage");
+const container = document.getElementById("supabaseRegistrationsList");
+
+if (!message || !container) {
+console.error("Supabase registrations section not found.");
+return;
+}
+
+message.textContent = "Loading registrations...";
+container.innerHTML = "";
+
+try {
+const { data, error } = await supabaseClient
+.from("team_registrations")
+.select("id, team_name, captain_name, vice_captain, squad, created_at, phone")
+.order("created_at", { ascending: false });
+
+```
+if (error) throw error;
+
+if (!data || data.length === 0) {
+  container.innerHTML = '<p class="muted">No registrations found yet.</p>';
+  message.textContent = "No registrations found.";
+  return;
+}
+
+container.innerHTML = data.map(team => {
+  let players = team.squad;
+
+  if (typeof players === "string") {
+    try {
+      players = JSON.parse(players);
+    } catch {
+      players = players.split(/\r?\n|,/);
+    }
+  }
+
+  if (!Array.isArray(players)) {
+    players = players ? [players] : [];
+  }
+
+  const playerList = players.map(player => {
+    if (player && typeof player === "object") {
+      return escapeHTML(
+        player.name || player.player_name || JSON.stringify(player)
+      );
+    }
+    return escapeHTML(String(player ?? ""));
+  }).filter(Boolean).join("<br>");
+
+  const registrationDate = team.created_at
+    ? new Date(team.created_at).toLocaleString()
+    : "Not available";
+
+  return `
+    <div class="card">
+      <h3>${escapeHTML(team.team_name || "Unnamed Team")}</h3>
+      <p><strong>Captain:</strong> ${escapeHTML(team.captain_name || "Not provided")}</p>
+      <p><strong>Vice-Captain:</strong> ${escapeHTML(team.vice_captain || "Not provided")}</p>
+      <p><strong>Contact:</strong> ${escapeHTML(team.phone || "Not provided")}</p>
+      <p><strong>Squad Members:</strong></p>
+      <div class="muted">${playerList || "No squad details provided"}</div>
+      <p class="muted"><strong>Registered:</strong> ${escapeHTML(registrationDate)}</p>
+    </div>
+  `;
+}).join("");
+
+message.textContent = `${data.length} registration(s) loaded successfully.`;
+```
+
+} catch (error) {
+console.error("Supabase registrations error:", error);
+container.innerHTML =
+'<p class="muted">Could not load registrations. Check the connection and permissions.</p>';
+message.textContent = error.message || "Failed to load registrations.";
+}
+}
 
 document.getElementById("password").addEventListener("keydown", e => {
   if (e.key === "Enter") login();
