@@ -311,7 +311,6 @@ td {
 
 <div id="appNotice" role="status" aria-live="polite"></div>
 
-html
 <div id="login" class="card">
   <h2>Admin Login</h2>
 
@@ -507,7 +506,6 @@ html
 </main>
 
 <script>
-```javascript
 const SUPABASE_URL = "https://slkqiklzpoaalrvjfdew.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_xVobjT2a_3S3N__5gsR65Q_M1FBFpcu";
 
@@ -817,7 +815,6 @@ function makeId() {
     Math.random().toString(36).slice(2,5);
 }
 
-javascript
 async function login() {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
@@ -1476,7 +1473,6 @@ window.addEventListener("unhandledrejection", function (event) {
   console.error("Admin Panel promise error:", event.reason);
   showNotice("Admin Panel encountered an unexpected error. Open F12 → Console for details.", true);
 });
-
 
 </script>
 </body>
