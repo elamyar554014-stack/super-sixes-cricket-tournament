@@ -311,13 +311,33 @@ td {
 
 <div id="appNotice" role="status" aria-live="polite"></div>
 
+```html
 <div id="login" class="card">
   <h2>Admin Login</h2>
-  <label>ADMIN PASSWORD</label>
-  <input type="password" id="password" placeholder="Enter password">
-  <button onclick="login()">Login</button>
+
+  <label for="email">ADMIN EMAIL</label>
+  <input
+    type="email"
+    id="email"
+    placeholder="Enter admin email"
+    autocomplete="username"
+    required
+  >
+
+  <label for="password">ADMIN PASSWORD</label>
+  <input
+    type="password"
+    id="password"
+    placeholder="Enter password"
+    autocomplete="current-password"
+    required
+  >
+
+  <button type="button" onclick="login()">Login</button>
+
   <p id="loginMsg" class="msg"></p>
 </div>
+```
 
 <main id="adminPanel" class="container hidden">
 
@@ -488,6 +508,15 @@ td {
 </main>
 
 <script>
+```javascript
+const SUPABASE_URL = "https://slkqiklzpoaalrvjfdew.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "YOUR_EXISTING_SUPABASE_PUBLISHABLE_KEY";
+
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+```
 
 
 // Memory fallback prevents the interface from crashing if browser storage
@@ -790,17 +819,42 @@ function makeId() {
     Math.random().toString(36).slice(2,5);
 }
 
-function login() {
-  const enteredPassword = document.getElementById("password").value.trim();
-  if (enteredPassword === ADMIN_PASSWORD) {
+```javascript
+async function login() {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const loginMsg = document.getElementById("loginMsg");
+
+  loginMsg.textContent = "";
+
+  if (!email || !password) {
+    loginMsg.textContent = "Please enter your admin email and password.";
+    return;
+  }
+
+  try {
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email: email,
+      password: password
+    });
+
+    if (error) {
+      loginMsg.textContent = "Login failed. Check your email and password.";
+      return;
+    }
+
     document.getElementById("login").classList.add("hidden");
     document.getElementById("adminPanel").classList.remove("hidden");
-    document.getElementById("loginMsg").textContent = "";
+    loginMsg.textContent = "";
+
     refresh();
-  } else {
-    document.getElementById("loginMsg").textContent = "Incorrect password.";
+  } catch (error) {
+    console.error("Login error:", error);
+    loginMsg.textContent = "Could not connect. Please try again.";
   }
 }
+```
+
 
 document.getElementById("password").addEventListener("keydown", e => {
   if (e.key === "Enter") login();
