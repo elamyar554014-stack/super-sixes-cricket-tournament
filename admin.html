@@ -610,6 +610,26 @@ function titleCaseName(value) {
     );
 }
 
+// Apply title case to team name, captain, and vice-captain inputs on blur.
+function attachTeamFieldCapitalization() {
+  const fields = [
+    document.getElementById("newTeam"),
+    document.getElementById("newCaptain"),
+    document.getElementById("newVice"),
+    ...document.querySelectorAll('input[id^="teamName"]'),
+    ...document.querySelectorAll('input[id^="captain"]'),
+    ...document.querySelectorAll('input[id^="vice"]')
+  ].filter(Boolean);
+
+  fields.forEach(field => {
+    if (field.dataset.titleCaseBound === "true") return;
+    field.dataset.titleCaseBound = "true";
+    field.addEventListener("blur", () => {
+      field.value = titleCaseName(field.value);
+    });
+  });
+}
+
 // Apply squad-name capitalization while typing/pasting into squad textareas.
 function attachSquadCapitalization() {
   const fields = [
@@ -802,7 +822,7 @@ document.querySelectorAll("[data-tab]").forEach(button => {
 /* TEAM MANAGEMENT */
 
 function addTeam() {
-  const name = document.getElementById("newTeam").value.trim();
+  const name = titleCaseName(document.getElementById("newTeam").value);
 
   if (!name) return alert("Enter a team name.");
 
@@ -816,8 +836,8 @@ function addTeam() {
   teams.push({
     id: makeId(),
     teamName: name,
-    captain: document.getElementById("newCaptain").value.trim(),
-    viceCaptain: document.getElementById("newVice").value.trim(),
+    captain: titleCaseName(document.getElementById("newCaptain").value),
+    viceCaptain: titleCaseName(document.getElementById("newVice").value),
     contact: document.getElementById("newContact").value.trim(),
     players
   });
@@ -865,7 +885,7 @@ function renderTeams() {
 
 function saveTeam(i) {
   const oldName = teams[i].teamName;
-  const name = document.getElementById("teamName" + i).value.trim();
+  const name = titleCaseName(document.getElementById("teamName" + i).value);
 
   if (!name) return alert("Team name is required.");
 
@@ -876,8 +896,8 @@ function saveTeam(i) {
   }
 
   teams[i].teamName = name;
-  teams[i].captain = document.getElementById("captain" + i).value.trim();
-  teams[i].viceCaptain = document.getElementById("vice" + i).value.trim();
+  teams[i].captain = titleCaseName(document.getElementById("captain" + i).value);
+  teams[i].viceCaptain = titleCaseName(document.getElementById("vice" + i).value);
   teams[i].contact = document.getElementById("contact" + i).value.trim();
   teams[i].players = document.getElementById("players" + i).value
     .split("\n").map(p => titleCaseName(p.trim())).filter(Boolean);
@@ -1379,6 +1399,7 @@ function refresh() {
   try {
     renderTeams();
     attachSquadCapitalization();
+    attachTeamFieldCapitalization();
     renderFixtures();
     renderMatchSelect();
     renderCustomOptions();
