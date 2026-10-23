@@ -294,9 +294,9 @@ td {
   border:1px dashed var(--line);
   border-radius:4px;
 }
-\n@media(max-width:600px) {
-  h1 { font-size:23px; }
-  .container { width:94%; }
+@media(max-width:600px) {
+h1 { font-size:23px; }
+.container { width:94%; }
 }
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -942,12 +942,13 @@ message.textContent = `${data.length} registration(s) loaded successfully.`;
 
 } catch (error) {
 console.error("Supabase registrations error:", error);
+
 container.innerHTML =
-'<p class="muted">Could not load registrations. Check the connection and permissions.</p>';
+'<p class="muted">Could not load registrations. Check the browser console for details.</p>';
+
 message.textContent = error.message || "Failed to load registrations.";
 }
 }
-
 document.getElementById("password").addEventListener("keydown", e => {
   if (e.key === "Enter") login();
 });
