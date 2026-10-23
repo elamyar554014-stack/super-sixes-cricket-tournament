@@ -311,7 +311,7 @@ td {
 
 <div id="appNotice" role="status" aria-live="polite"></div>
 
-```html
+html
 <div id="login" class="card">
   <h2>Admin Login</h2>
 
@@ -337,7 +337,6 @@ td {
 
   <p id="loginMsg" class="msg"></p>
 </div>
-```
 
 <main id="adminPanel" class="container hidden">
 
@@ -516,7 +515,6 @@ const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_PUBLISHABLE_KEY
 );
-```
 
 
 // Memory fallback prevents the interface from crashing if browser storage
@@ -819,7 +817,7 @@ function makeId() {
     Math.random().toString(36).slice(2,5);
 }
 
-```javascript
+javascript
 async function login() {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
@@ -853,7 +851,6 @@ async function login() {
     loginMsg.textContent = "Could not connect. Please try again.";
   }
 }
-```
 
 
 document.getElementById("password").addEventListener("keydown", e => {
