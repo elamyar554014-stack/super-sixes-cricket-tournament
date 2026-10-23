@@ -379,92 +379,100 @@ document.getElementById("logoFile").addEventListener("change", function(e){
 
 })
 
-/* HELPERS */
+/* SUPABASE CONNECTION
+   The publishable key is intended for browser use. Database security is enforced by RLS.
+*/
+const SUPABASE_URL = "https://slkqikizlpoaalrvjfdew.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_xVobjT2a_3S3N__5gsR65Q_M1FBFpcu";
 
-function getExistingTeams(){
-  try{
-    return JSON.parse(localStorage.getItem("teams")) || []
-  }catch(error){
-    return []
-  }
-}
-
-function isNameTaken(name){
-  let existing = getExistingTeams()
-  let normalized = name.trim().toLowerCase()
-  return existing.some(t => (t.teamName || "").trim().toLowerCase() === normalized)
-}
-
-/* LIVE CHECK AS THEY TYPE / LEAVE THE FIELD */
-
-let teamNameInput = document.getElementById("teamName")
-let teamNameHint = document.getElementById("teamNameHint")
+/* LIVE CHECK AS THEY TYPE
+   Global duplicate-name checking will be added after the database constraint is configured.
+*/
+const teamNameInput = document.getElementById("teamName");
+const teamNameHint = document.getElementById("teamNameHint");
 
 function checkTeamNameField(){
-  let name = teamNameInput.value.trim()
-  let taken = name !== "" && isNameTaken(name)
-  teamNameInput.classList.toggle("invalid", taken)
-  teamNameHint.classList.toggle("show", taken)
-  return !taken
+  teamNameInput.classList.remove("invalid");
+  teamNameHint.classList.remove("show");
+  return teamNameInput.value.trim() !== "";
 }
 
-teamNameInput.addEventListener("input", checkTeamNameField)
-teamNameInput.addEventListener("blur", checkTeamNameField)
+teamNameInput.addEventListener("input", checkTeamNameField);
+teamNameInput.addEventListener("blur", checkTeamNameField);
 
-/* SUBMIT */
+/* SUBMIT TO THE CENTRAL SUPABASE DATABASE */
+document.getElementById("registerForm").addEventListener("submit", async function(e){
+  e.preventDefault();
 
-document.getElementById("registerForm").addEventListener("submit", function(e){
+  const msg = document.getElementById("msg");
+  const submitButton = this.querySelector('button[type="submit"]');
 
-  e.preventDefault()
-
-  let msg = document.getElementById("msg")
-
-  let teamName = document.getElementById("teamName").value.trim()
-  let captain = document.getElementById("captain").value.trim()
-  let viceCaptain = document.getElementById("viceCaptain").value.trim()
-  let contact = document.getElementById("contact").value.trim()
+  const teamName = document.getElementById("teamName").value.trim();
+  const captain = document.getElementById("captain").value.trim();
+  const viceCaptain = document.getElementById("viceCaptain").value.trim();
+  const contact = document.getElementById("contact").value.trim();
 
   if(!teamName || !captain || !contact){
-    msg.className = "err"
-    msg.innerText = "Please fill in Team Name, Captain, and Contact Number."
-    return
+    msg.className = "err";
+    msg.innerText = "Please fill in Team Name, Captain, and Contact Number.";
+    return;
   }
 
-  if(!checkTeamNameField()){
-    msg.className = "err"
-    msg.innerText = "That team name is already taken. Please choose a different one."
-    teamNameInput.focus()
-    return
+  const players = [];
+  for(let i = 1; i <= 16; i++){
+    players.push(document.getElementById("player" + i).value.trim());
   }
 
-  let players = []
+  submitButton.disabled = true;
+  submitButton.style.opacity = "0.65";
+  msg.className = "";
+  msg.innerText = "Submitting registration…";
 
-  for(let i=1; i<=16; i++){
-    let val = document.getElementById("player"+i).value.trim()
-    players.push(val)
+  try {
+    const response = await fetch(
+      SUPABASE_URL + "/rest/v1/team_registrations",
+      {
+        method: "POST",
+        headers: {
+          "apikey": SUPABASE_PUBLISHABLE_KEY,
+          "Authorization": "Bearer " + SUPABASE_PUBLISHABLE_KEY,
+          "Content-Type": "application/json",
+          "Prefer": "return=minimal"
+        },
+        body: JSON.stringify({
+          team_name: teamName,
+          captain_name: captain,
+          vice_captain_name: viceCaptain || null,
+          squad_members: players,
+          contact_number: contact
+        })
+      }
+    );
+
+    if(!response.ok){
+      let details = "";
+      try {
+        const errorData = await response.json();
+        details = errorData.message || errorData.details || errorData.hint || "";
+      } catch (_) {}
+      throw new Error(details || "Database rejected the registration (HTTP " + response.status + ").");
+    }
+
+    msg.className = "ok";
+    msg.innerText = "Registration submitted successfully! Your entry is saved.";
+    this.reset();
+    logoDataUrl = "";
+    document.getElementById("logoPreview").src =
+      "https://cdn-icons-png.flaticon.com/512/857/857455.png";
+  } catch(error) {
+    console.error("Registration submission failed:", error);
+    msg.className = "err";
+    msg.innerText = "Registration could not be submitted. Please try again or contact the tournament admin.";
+  } finally {
+    submitButton.disabled = false;
+    submitButton.style.opacity = "";
   }
-
-  let teams = getExistingTeams()
-
-  teams.push({
-    teamName,
-    captain,
-    viceCaptain,
-    contact,
-    logo: logoDataUrl,
-    players
-  })
-
-  localStorage.setItem("teams", JSON.stringify(teams))
-
-  msg.className = "ok"
-  msg.innerText = "Team registered! Redirecting to Registered Teams..."
-
-  setTimeout(function(){
-    window.location = "teams.html"
-  }, 1200)
-
-})
+});
 
 </script>
 
