@@ -422,7 +422,6 @@ td {
         <p class="muted">Connect your response spreadsheet to view submitted teams here.</p>
       </div>
     </div>
-  </section>
 
   <!-- SUPABASE REGISTRATIONS -->
 
@@ -445,6 +444,7 @@ td {
     <p class="muted">Click Refresh Registrations to load teams.</p>
   </div>
 </div> 
+</section>
   
   <!-- FIXTURES -->
 
@@ -690,9 +690,9 @@ function attachSquadCapitalization() {
     field.dataset.titleCaseBound = "true";
     field.addEventListener("blur", () => {
       field.value = field.value
-        .split("\\n")
+        .split(/\r?\n/)
         .map(line => titleCaseName(line))
-        .join("\\n");
+        .join("\n");
     });
   });
 }
@@ -889,8 +889,7 @@ const { data, error } = await supabaseClient
 .from("team_registrations")
 .select("id, team_name, captain_name, vice_captain, squad, created_at, phone")
 .order("created_at", { ascending: false });
-
-```
+  
 if (error) throw error;
 
 if (!data || data.length === 0) {
@@ -940,7 +939,6 @@ container.innerHTML = data.map(team => {
 }).join("");
 
 message.textContent = `${data.length} registration(s) loaded successfully.`;
-```
 
 } catch (error) {
 console.error("Supabase registrations error:", error);
