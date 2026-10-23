@@ -1,48 +1,663 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Fixtures</title>
-<link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fixtures | Super Sixes</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+
+  :root{
+    --turf-dark:    #0A1B13;
+    --turf-panel:   #102A1D;
+    --turf-panel-2: #0D2318;
+    --cream:        #F1EAD8;
+    --cream-dim:    #B9AF98;
+    --ball-red:     #C0392B;
+    --gold:         #D9A441;
+    --hairline:         rgba(241,234,216,0.14);
+    --hairline-strong:  rgba(241,234,216,0.26);
+
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-body:    'Work Sans', sans-serif;
+    --font-mono:    'Space Mono', monospace;
+
+    --ease-out: cubic-bezier(.16,1,.3,1);
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; font-family:var(--font-body); }
+
+  body{
+    background:var(--turf-dark);
+    color:var(--cream);
+    padding-bottom:80px;
+  }
+
+  :focus-visible{ outline:2px solid var(--gold); outline-offset:3px; }
+
+  /* ============ HEADER ============ */
+  header{
+    background:rgba(10,27,19,0.92);
+    padding:22px 6%;
+    border-bottom:1px solid var(--hairline-strong);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:14px;
+  }
+
+  .h-left{ display:flex; align-items:center; gap:12px; }
+
+  header .tag{
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:2px;
+    color:var(--ball-red);
+    border:1px solid var(--ball-red);
+    padding:4px 8px;
+  }
+
+  header h1{
+    font-family:var(--font-display);
+    font-size:26px;
+    letter-spacing:0.5px;
+    font-weight:400;
+  }
+
+  .back-btn{
+    border:1px solid var(--hairline-strong);
+    color:var(--cream);
+    padding:10px 18px;
+    border-radius:3px;
+    text-decoration:none;
+    font-weight:600;
+    font-size:13px;
+    transition:0.25s ease;
+    white-space:nowrap;
+  }
+  .back-btn:hover{
+    border-color:var(--gold);
+    color:var(--gold);
+  }
+
+  /* ============ CONTROLS ============ */
+  .controls{
+    max-width:860px;
+    margin:44px auto 0;
+    padding:0 6%;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:16px;
+  }
+
+  .controls p{
+    font-size:14px;
+    color:var(--cream-dim);
+    max-width:50ch;
+  }
+
+  .btn-group{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+
+  button{
+    padding:13px 24px;
+    background:var(--ball-red);
+    color:var(--cream);
+    border:none;
+    border-radius:3px;
+    font-family:var(--font-body);
+    font-weight:600;
+    font-size:14.5px;
+    cursor:pointer;
+    transition:0.2s ease, transform 0.12s ease;
+    white-space:nowrap;
+  }
+  button:hover{
+    background:#a5301f;
+    transform:translateY(-2px);
+  }
+  button:active{ transform:translateY(0) scale(0.97); }
+
+  button.ghost{
+    background:transparent;
+    border:1px solid var(--hairline-strong);
+    color:var(--cream);
+  }
+  button.ghost:hover{
+    border-color:var(--gold);
+    color:var(--gold);
+    background:transparent;
+    transform:translateY(-2px);
+  }
+
+  button:disabled{
+    background:var(--turf-panel);
+    color:var(--cream-dim);
+    border:1px solid var(--hairline);
+    cursor:not-allowed;
+    transform:none;
+  }
+  button:disabled:hover{ background:var(--turf-panel); color:var(--cream-dim); }
+
+  /* ============ SUB BAR ============ */
+  .sub-bar{
+    max-width:860px;
+    margin:22px auto 0;
+    padding:0 6% 20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border-bottom:1px solid var(--hairline-strong);
+    font-family:var(--font-mono);
+    font-size:12px;
+    letter-spacing:1.5px;
+    color:var(--cream-dim);
+  }
+
+  .sub-bar strong{ color:var(--gold); font-weight:400; }
+
+  /* ============ FIXTURES LIST ============ */
+  #fixtures{
+    max-width:860px;
+    margin:30px auto 0;
+    padding:0 6%;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+
+  .card{
+    position:relative;
+    background:var(--turf-panel);
+    border:1px solid var(--hairline);
+    border-left:4px solid var(--ball-red);
+    padding:22px 28px;
+    display:flex;
+    align-items:center;
+    gap:22px;
+    opacity:0;
+    animation:fadeUp 0.45s var(--ease-out) forwards;
+    transition:transform 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+  }
+
+  .card:hover{
+    transform:translateY(-4px);
+    background:#132f21;
+    border-left-color:var(--gold);
+  }
+
+  .match-badge{
+    width:48px;
+    height:48px;
+    border-radius:50%;
+    background:var(--turf-panel-2);
+    border:1px solid var(--gold);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:var(--font-mono);
+    font-size:12px;
+    color:var(--gold);
+    flex-shrink:0;
+    letter-spacing:0.5px;
+  }
+
+  .match-teams{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:22px;
+  }
+
+  .team-name{
+    flex:1;
+    font-family:var(--font-display);
+    font-size:clamp(20px, 3vw, 28px);
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    color:var(--cream);
+    line-height:1.1;
+  }
+
+  .team-name.left{ text-align:right; }
+  .team-name.right{ text-align:left; }
+
+  .vs-badge{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:5px;
+    flex-shrink:0;
+  }
+
+  .vs-ball{
+    width:20px; height:20px;
+    border-radius:50%;
+    background:var(--ball-red);
+    position:relative;
+  }
+  .vs-ball::before, .vs-ball::after{
+    content:"";
+    position:absolute;
+    top:50%; left:50%;
+    width:16px; height:1px;
+    background:var(--cream);
+    opacity:0.85;
+  }
+  .vs-ball::before{ transform:translate(-50%,-50%) rotate(20deg); }
+  .vs-ball::after{ transform:translate(-50%,-50%) rotate(-20deg); }
+
+  .vs-label{
+    font-family:var(--font-mono);
+    font-size:10px;
+    letter-spacing:1.5px;
+    color:var(--cream-dim);
+  }
+
+  .bye-card{
+    border-left-color:var(--gold);
+    justify-content:center;
+    text-align:center;
+  }
+
+  .bye-card .match-badge{
+    border-color:var(--hairline-strong);
+    color:var(--cream-dim);
+  }
+
+  .bye-card .match-teams{
+    color:var(--cream-dim);
+    font-family:var(--font-body);
+    font-size:15px;
+    justify-content:flex-start;
+  }
+
+  .bye-card .match-teams b{
+    font-family:var(--font-display);
+    font-size:19px;
+    letter-spacing:0.4px;
+    color:var(--cream);
+    font-weight:400;
+    margin-right:6px;
+  }
+
+  /* EMPTY */
+  .empty{
+    max-width:860px;
+    margin:60px auto 0;
+    padding:0 6%;
+    text-align:center;
+  }
+  .empty h2{
+    font-family:var(--font-display);
+    font-size:26px;
+    font-weight:400;
+    color:var(--cream-dim);
+  }
+  .empty p{
+    color:var(--cream-dim);
+    font-size:14px;
+    margin-top:8px;
+  }
+
+  @keyframes fadeUp{
+    from{ opacity:0; transform:translateY(14px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .card{ animation:none; opacity:1; }
+    .card:hover{ transform:none; }
+  }
+
+  @media(max-width:640px){
+    header h1{ font-size:20px; }
+    .controls{ margin-top:30px; flex-direction:column; align-items:flex-start; }
+    .card{ padding:18px 20px; flex-direction:column; gap:14px; }
+    .match-teams{ flex-direction:column; gap:12px; }
+    .team-name.left, .team-name.right{ text-align:center; }
+  }
+
+  /* ============ PRINT / PDF SHEET ============ */
+  /* hidden on screen; only shown to the browser's print engine */
+  #printSheet{ display:none; }
+
+  @media print{
+
+    body *{ visibility:hidden; }
+
+    #printSheet, #printSheet *{ visibility:visible; }
+
+    #printSheet{
+      display:block;
+      position:absolute;
+      top:0; left:0;
+      width:100%;
+      background:#ffffff;
+      color:#161616;
+      padding:24px 30px;
+    }
+
+    .p-header h1{
+      font-family:var(--font-display);
+      font-size:34px;
+      letter-spacing:1px;
+      color:#161616;
+    }
+
+    .p-header p{
+      font-family:var(--font-mono);
+      font-size:11px;
+      letter-spacing:2px;
+      color:#666;
+      margin-top:4px;
+      margin-bottom:24px;
+    }
+
+    .p-row{
+      display:flex;
+      align-items:center;
+      gap:16px;
+      padding:11px 14px;
+      border-bottom:1px solid #e2ddd0;
+    }
+
+    .p-row:nth-of-type(even){ background:#f6f3ec; }
+
+    .p-num{
+      font-family:var(--font-mono);
+      font-size:11px;
+      font-weight:700;
+      color:#a5301f;
+      width:64px;
+      flex-shrink:0;
+    }
+
+    .p-bye .p-num{ color:#9a7418; }
+
+    .p-teams{ font-size:13.5px; color:#333; }
+
+    .p-teams b{
+      font-family:var(--font-display);
+      font-size:16px;
+      letter-spacing:0.3px;
+      color:#161616;
+      font-weight:400;
+    }
+
+    .p-footer{
+      margin-top:26px;
+      font-size:10px;
+      color:#999;
+    }
+
+  }
+
+</style>
+
 </head>
 
 <body>
 
-<h2>Fixtures</h2>
+<header>
+  <div class="h-left">
+    <span class="tag">DRAW</span>
+    <h1>Fixtures</h1>
+  </div>
+  <a href="index.html" class="back-btn">&larr; Back Home</a>
+</header>
 
-<button onclick="generate()">Generate Fixtures</button>
+<div class="controls">
+  <p>Round 1 fixtures, drawn by the tournament organisers. Managed from the Admin Panel.</p>
+  <div class="btn-group">
+    <button id="pdfBtn" class="ghost" onclick="downloadPDF()" disabled>Download PDF</button>
+  </div>
+</div>
+
+<div class="sub-bar">
+  <span><strong id="matchCount">0</strong> MATCHES DRAWN</span>
+  <span>ROUND 1</span>
+</div>
 
 <div id="fixtures"></div>
 
+<!-- print-only sheet, populated just before printing -->
+<div id="printSheet"></div>
+
 <script>
 
-function generate(){
+let lastFixtures = [];
 
-let teams=JSON.parse(localStorage.getItem("teams")) || []
-
-teams.sort(()=>Math.random()-0.5)
-
-let container=document.getElementById("fixtures")
-
-container.innerHTML=""
-
-for(let i=0;i<teams.length;i+=2){
-
-if(teams[i+1]){
-
-let match=document.createElement("div")
-
-match.className="card"
-
-match.innerHTML=`${teams[i].teamName} VS ${teams[i+1].teamName}`
-
-container.appendChild(match)
-
+function safeText(value) {
+  return value == null || value === "" ? "TBA" : String(value);
 }
 
+function normalizeFixtures(data) {
+  // Supports the older public-page format and the Admin Panel format.
+  if (!data) return [];
+  let list = Array.isArray(data) ? data : [];
+
+  // Also support formats where fixtures are grouped inside rounds.
+  if (!Array.isArray(data) && Array.isArray(data.rounds)) {
+    list = data.rounds.flatMap((round, index) =>
+      (Array.isArray(round.fixtures) ? round.fixtures : []).map(item => ({
+        ...item,
+        round: item.round ?? round.round ?? round.name ?? `Round ${index + 1}`
+      }))
+    );
+  }
+
+  return list.map((item, index) => {
+    const teamA = item.teamA ?? item.team1 ?? item.homeTeam ?? "";
+    const teamB = item.teamB ?? item.team2 ?? item.awayTeam ?? "";
+    const isBye = item.type === "bye" || item.type === "BYE" ||
+                  item.bye === true || item.status === "bye" ||
+                  String(teamB).toUpperCase() === "BYE" || (!teamB && !!teamA);
+
+    return {
+      ...item,
+      teamA: safeText(teamA),
+      teamB: safeText(teamB),
+      type: isBye ? "bye" : "match",
+      roundLabel: safeText(item.roundName ?? item.round ?? item.stage ?? "Round 1"),
+      matchNumber: item.matchNumber ?? item.matchNo ?? item.number ?? (index + 1),
+      winner: item.winner ?? "",
+      scoreA: item.scoreA ?? item.runsA ?? "",
+      scoreB: item.scoreB ?? item.runsB ?? "",
+      status: item.status ?? (item.winner ? "Completed" : "Scheduled")
+    };
+  });
 }
 
+function makeText(tag, className, text) {
+  const element = document.createElement(tag);
+  if (className) element.className = className;
+  element.textContent = text;
+  return element;
 }
 
+function renderFixtures(entries) {
+  const container = document.getElementById("fixtures");
+  const countEl = document.getElementById("matchCount");
+  const pdfBtn = document.getElementById("pdfBtn");
+
+  container.innerHTML = "";
+  const matches = entries.filter(entry => entry.type === "match");
+  countEl.textContent = matches.length;
+  pdfBtn.disabled = entries.length === 0;
+
+  if (!entries.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty";
+    empty.appendChild(makeText("h2", "", "No Fixtures Yet"));
+    empty.appendChild(makeText(
+      "p", "",
+      "Fixtures generated in the Admin Panel will appear here. Make sure both pages are opened from the same website/server."
+    ));
+    container.appendChild(empty);
+    return;
+  }
+
+  // Display every round saved by the Admin Panel, not just Round 1.
+  const rounds = [];
+  const roundMap = new Map();
+
+  entries.forEach((entry, index) => {
+    const label = entry.roundLabel || "Round 1";
+    if (!roundMap.has(label)) {
+      const group = { label, entries: [] };
+      roundMap.set(label, group);
+      rounds.push(group);
+    }
+    roundMap.get(label).entries.push({ ...entry, originalIndex: index });
+  });
+
+  rounds.forEach((group, groupIndex) => {
+    const heading = document.createElement("h2");
+    heading.textContent = group.label;
+    heading.style.cssText =
+      "font-family:var(--font-display);font-size:28px;font-weight:400;" +
+      "letter-spacing:.5px;margin:22px 0 0;color:var(--gold);";
+    container.appendChild(heading);
+
+    group.entries.forEach((entry, i) => {
+      const card = document.createElement("div");
+      card.className = "card" + (entry.type === "bye" ? " bye-card" : "");
+      card.style.animationDelay = `${(groupIndex * 3 + i) * 0.05}s`;
+
+      const badgeText = entry.type === "bye"
+        ? "BYE"
+        : String(entry.matchNumber).padStart(2, "0");
+      card.appendChild(makeText("span", "match-badge", badgeText));
+
+      if (entry.type === "bye") {
+        const byeText = document.createElement("span");
+        byeText.className = "match-teams";
+        const team = makeText("b", "", entry.teamA);
+        byeText.appendChild(team);
+        byeText.appendChild(document.createTextNode(" advances automatically this round"));
+        card.appendChild(byeText);
+      } else {
+        const teams = document.createElement("div");
+        teams.className = "match-teams";
+
+        const left = makeText("span", "team-name left", entry.teamA);
+        const vs = document.createElement("span");
+        vs.className = "vs-badge";
+        const ball = makeText("span", "vs-ball", "");
+        const vsLabel = makeText("span", "vs-label", "VS");
+        vs.append(ball, vsLabel);
+        const right = makeText("span", "team-name right", entry.teamB);
+
+        teams.append(left, vs, right);
+        card.appendChild(teams);
+
+        const details = document.createElement("div");
+        details.style.cssText =
+          "width:100%;text-align:center;color:var(--cream-dim);" +
+          "font-size:12px;margin-top:8px;";
+
+        if (entry.winner) {
+          details.textContent =
+            `Result: ${entry.winner} won` +
+            ((entry.scoreA !== "" || entry.scoreB !== "")
+              ? ` | Score: ${entry.scoreA || "—"} - ${entry.scoreB || "—"}`
+              : "");
+        } else {
+          details.textContent = entry.status === "Completed"
+            ? "Completed"
+            : "Scheduled";
+        }
+        card.style.flexWrap = "wrap";
+        card.appendChild(details);
+      }
+
+      container.appendChild(card);
+    });
+  });
+}
+
+function buildPrintSheet() {
+  const rowsHTML = lastFixtures.map(entry => {
+    const label = safeText(entry.roundLabel);
+    if (entry.type === "bye") {
+      return `<div class="p-row p-bye">
+        <span class="p-num">${label} — BYE</span>
+        <span class="p-teams"><b>${escapeHTML(entry.teamA)}</b> advances automatically</span>
+      </div>`;
+    }
+    const result = entry.winner ? ` — Winner: ${escapeHTML(entry.winner)}` : "";
+    const scores = (entry.scoreA !== "" || entry.scoreB !== "")
+      ? ` (${escapeHTML(entry.scoreA || "—")} - ${escapeHTML(entry.scoreB || "—")})`
+      : "";
+    return `<div class="p-row">
+      <span class="p-num">${escapeHTML(label)} — MATCH ${String(entry.matchNumber).padStart(2, "0")}</span>
+      <span class="p-teams"><b>${escapeHTML(entry.teamA)}</b> &nbsp;vs&nbsp; <b>${escapeHTML(entry.teamB)}</b>${scores}${result}</span>
+    </div>`;
+  }).join("");
+
+  document.getElementById("printSheet").innerHTML = `
+    <div class="p-header">
+      <h1>SUPER SIXES</h1>
+      <p>TOURNAMENT FIXTURES</p>
+    </div>
+    <div class="p-list">${rowsHTML}</div>
+    <div class="p-footer">Generated ${new Date().toLocaleString()}</div>
+  `;
+}
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  })[char]);
+}
+
+function downloadPDF() {
+  if (!lastFixtures.length) {
+    alert("No fixtures to download yet.");
+    return;
+  }
+  buildPrintSheet();
+  const originalTitle = document.title;
+  document.title = "Super-Sixes-Fixtures";
+  window.print();
+  document.title = originalTitle;
+}
+
+function loadFixtures() {
+  let saved = [];
+  try {
+    // Prefer the public-facing mirror. If it is missing or empty, fall back
+    // to the Admin Panel's canonical match list.
+    const publicData = JSON.parse(localStorage.getItem("fixtures") || "[]");
+    const adminData = JSON.parse(localStorage.getItem("matches") || "[]");
+    saved = Array.isArray(publicData) && publicData.length
+      ? publicData
+      : adminData;
+  } catch (error) {
+    console.error("Could not read saved fixtures:", error);
+  }
+  lastFixtures = normalizeFixtures(saved);
+  renderFixtures(lastFixtures);
+}
+
+loadFixtures();
+
+// Refresh the public fixtures page when the Admin Panel saves changes.
+window.addEventListener("storage", event => {
+  if (event.key === "fixtures") loadFixtures();
+});
 </script>
 
 </body>
