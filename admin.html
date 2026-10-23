@@ -1,525 +1,1130 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel | Super Sixes</title>
 
-<title>Admin Panel | SUPER SIXES</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial,sans-serif;
+:root {
+  --dark:#0A1B13;
+  --panel:#102A1D;
+  --panel2:#0D2318;
+  --cream:#F1EAD8;
+  --dim:#B9AF98;
+  --red:#C0392B;
+  --gold:#D9A441;
+  --green:#7FB37A;
+  --line:rgba(241,234,216,.16);
 }
 
-body{
-background:linear-gradient(135deg,#04140f,#06261c);
-color:white;
-min-height:100vh;
+* {
+  box-sizing:border-box;
 }
 
-/* HEADER */
-
-header{
-background:rgba(0,0,0,0.65);
-backdrop-filter:blur(10px);
-padding:18px 25px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-flex-wrap:wrap;
-gap:15px;
+body {
+  margin:0;
+  background:var(--dark);
+  color:var(--cream);
+  font-family:'Work Sans',sans-serif;
 }
 
-.logo{
-font-size:28px;
-font-weight:bold;
-color:gold;
+header {
+  padding:22px 5%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  flex-wrap:wrap;
+  border-bottom:1px solid var(--line);
 }
 
-/* BACK BUTTON */
-
-.back-btn{
-background:gold;
-color:black;
-padding:10px 20px;
-border-radius:40px;
-text-decoration:none;
-font-weight:bold;
-transition:0.3s;
+h1,h2,h3 {
+  font-family:'Bebas Neue',sans-serif;
+  font-weight:400;
 }
 
-.back-btn:hover{
-background:white;
+h1 { font-size:28px; }
+
+header a {
+  color:var(--cream);
+  text-decoration:none;
+  border:1px solid var(--line);
+  padding:10px 15px;
 }
 
-/* LOGIN */
-
-#login{
-width:100%;
-max-width:420px;
-margin:80px auto;
-background:rgba(255,255,255,0.06);
-padding:35px;
-border-radius:18px;
-text-align:center;
-backdrop-filter:blur(10px);
-border:1px solid rgba(255,215,0,0.15);
+.container {
+  width:92%;
+  max-width:1200px;
+  margin:30px auto;
 }
 
-#login h2{
-color:gold;
-margin-bottom:25px;
+.hidden { display:none!important; }
+
+.card {
+  background:var(--panel);
+  border-left:3px solid var(--gold);
+  padding:22px;
+  margin-bottom:20px;
 }
 
-/* INPUT */
-
-input{
-width:100%;
-padding:13px;
-margin:10px 0;
-border:none;
-border-radius:10px;
-outline:none;
-font-size:15px;
+input,select,textarea {
+  width:100%;
+  padding:11px;
+  margin:5px 0 12px;
+  background:var(--panel2);
+  border:1px solid var(--line);
+  color:var(--cream);
+  border-radius:3px;
+  font:14px 'Work Sans',sans-serif;
 }
 
-/* BUTTON */
-
-button{
-padding:12px 20px;
-border:none;
-border-radius:10px;
-cursor:pointer;
-font-weight:bold;
-transition:0.3s;
+label {
+  display:block;
+  color:var(--dim);
+  font:11px 'Space Mono',monospace;
+  margin-top:8px;
 }
 
-/* LOGIN BUTTON */
-
-.login-btn{
-background:gold;
-color:black;
+button {
+  padding:11px 15px;
+  border:0;
+  border-radius:3px;
+  background:var(--gold);
+  color:var(--dark);
+  font-weight:700;
+  cursor:pointer;
+  margin:3px;
 }
 
-.login-btn:hover{
-background:white;
-transform:scale(1.04);
+button:hover { filter:brightness(1.1); }
+
+button.secondary {
+  background:transparent;
+  border:1px solid var(--line);
+  color:var(--cream);
 }
 
-/* MESSAGE */
-
-#msg{
-margin-top:15px;
-font-weight:bold;
-color:red;
+button.danger {
+  background:var(--red);
+  color:white;
 }
 
-/* PANEL */
-
-.container{
-width:92%;
-max-width:1200px;
-margin:auto;
-padding:30px 0;
+button.green {
+  background:var(--green);
 }
 
-.hidden{
-display:none;
+#login {
+  max-width:400px;
+  margin:70px auto;
+  width:90%;
 }
 
-/* GRID */
-
-#teams{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
-gap:25px;
-margin-top:25px;
+.tabs {
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-bottom:25px;
 }
 
-/* CARD */
-
-.card{
-background:rgba(255,255,255,0.06);
-backdrop-filter:blur(10px);
-border:1px solid rgba(255,215,0,0.15);
-padding:22px;
-border-radius:18px;
-transition:0.3s;
+.tabs button {
+  background:var(--panel);
+  color:var(--cream);
+  border:1px solid var(--line);
 }
 
-.card:hover{
-transform:translateY(-5px);
-box-shadow:0 10px 25px rgba(0,0,0,0.4);
+.tabs button.active {
+  background:var(--gold);
+  color:var(--dark);
 }
 
-/* LABEL */
+.section { display:none; }
+.section.active { display:block; }
 
-label{
-display:block;
-margin-top:10px;
-margin-bottom:5px;
-color:#ddd;
-font-size:14px;
+.grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:15px;
 }
 
-/* PLAYERS GRID */
-
-.players{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
-gap:8px;
-margin-top:10px;
+.row {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:10px;
 }
 
-/* BUTTON GROUP */
-
-.btn-group{
-display:flex;
-gap:10px;
-margin-top:18px;
+.players {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:5px;
 }
 
-.btn-group button{
-flex:1;
+table {
+  width:100%;
+  border-collapse:collapse;
+  background:var(--panel2);
 }
 
-/* SAVE BUTTON */
-
-.save-btn{
-background:#00c853;
-color:white;
+th {
+  background:var(--gold);
+  color:var(--dark);
+  padding:12px;
+  text-align:left;
 }
 
-.save-btn:hover{
-transform:scale(1.03);
+td {
+  padding:11px;
+  border-bottom:1px solid var(--line);
 }
 
-/* DELETE BUTTON */
+.table-wrap { overflow-x:auto; }
 
-.delete-btn{
-background:#ff1744;
-color:white;
+.fixture {
+  background:var(--panel);
+  border-left:3px solid var(--green);
+  padding:18px;
+  margin-bottom:12px;
 }
 
-.delete-btn:hover{
-transform:scale(1.03);
+.fixture.pending { border-left-color:var(--gold); }
+
+.fixture h3 {
+  color:var(--gold);
+  margin-top:0;
 }
 
-/* RESPONSIVE */
-
-@media(max-width:600px){
-
-.logo{
-font-size:22px;
+.muted {
+  color:var(--dim);
+  line-height:1.6;
 }
 
-#login{
-width:92%;
+.msg {
+  color:var(--green);
+  min-height:18px;
 }
 
-header{
-justify-content:center;
+#appNotice {
+  display:none;
+  width:92%;
+  max-width:1200px;
+  margin:16px auto 0;
+  padding:12px 15px;
+  border:1px solid rgba(217,164,65,.55);
+  border-left:4px solid var(--gold);
+  background:var(--panel);
+  color:var(--cream);
+  line-height:1.55;
+  font-size:13px;
 }
+#appNotice.show { display:block; }
+#appNotice.error { border-color:rgba(192,57,43,.75); border-left-color:var(--red); }
 
+@media(max-width:600px) {
+  h1 { font-size:23px; }
+  .container { width:94%; }
 }
-
 </style>
-
 </head>
 
 <body>
 
-<!-- HEADER -->
-
 <header>
-
-<div class="logo">
-🔐 SUPER SIXES ADMIN PANEL
-</div>
-
-<a href="index.html" class="back-btn">
-← Back Home
-</a>
-
+  <h1>SUPER SIXES — ADMIN PANEL</h1>
+  <a href="index.html">← Back Home</a>
 </header>
 
-<!-- LOGIN -->
+<div id="appNotice" role="status" aria-live="polite"></div>
 
-<div id="login">
-
-<h2>Admin Login</h2>
-
-<input
-type="password"
-id="password"
-placeholder="Enter Admin Password">
-
-<button
-class="login-btn"
-onclick="login()">
-
-Login
-
-</button>
-
-<p id="msg"></p>
-
+<div id="login" class="card">
+  <h2>Admin Login</h2>
+  <label>ADMIN PASSWORD</label>
+  <input type="password" id="password" placeholder="Enter password">
+  <button onclick="login()">Login</button>
+  <p id="loginMsg" class="msg"></p>
 </div>
 
-<!-- ADMIN PANEL -->
+<main id="adminPanel" class="container hidden">
 
-<div class="container hidden" id="adminPanel">
+  <nav class="tabs">
+    <button class="active" data-tab="teamsSection">Edit Squad / Teams</button>
+    <button data-tab="fixturesSection">Generate Fixtures</button>
+    <button data-tab="scoreSection">Enter Score</button>
+    <button data-tab="customSection">Select Next Match</button>
+    <button data-tab="resultsSection">Results & Standings</button>
+  </nav>
 
-<h2 style="text-align:center;color:gold;">
-🏏 Registered Teams
-</h2>
+  <!-- TEAMS -->
 
-<div id="teams"></div>
+  <section id="teamsSection" class="section active">
 
-</div>
+    <h2>REGISTER NEW TEAM</h2>
+
+    <div class="card">
+
+      <label>TEAM NAME</label>
+      <input id="newTeam" placeholder="Team name">
+
+      <div class="row">
+        <div>
+          <label>CAPTAIN</label>
+          <input id="newCaptain" placeholder="Captain name">
+        </div>
+
+        <div>
+          <label>VICE CAPTAIN</label>
+          <input id="newVice" placeholder="Vice captain">
+        </div>
+      </div>
+
+      <label>CONTACT NUMBER</label>
+      <input id="newContact" placeholder="Contact number">
+
+      <label>PLAYERS — ONE NAME PER LINE</label>
+      <textarea id="newPlayers" rows="5"
+        placeholder="Player 1&#10;Player 2&#10;Player 3"></textarea>
+
+      <button onclick="addTeam()">Add Team</button>
+
+    </div>
+
+    <h2>REGISTERED TEAMS</h2>
+    <div id="teamsList" class="grid"></div>
+
+  </section>
+
+  <!-- FIXTURES -->
+
+  <section id="fixturesSection" class="section">
+
+    <h2>KNOCKOUT FIXTURES</h2>
+
+    <p class="muted">
+      Generate the first round after registering all teams.
+      Winners advance when you generate the next round.
+    </p>
+
+    <button onclick="generateFirstRound()">Generate First Round</button>
+    <button onclick="generateNextRound()">Generate Next Round From Winners</button>
+
+    <div id="fixturesList" style="margin-top:20px"></div>
+
+  </section>
+
+  <!-- SCORES -->
+
+  <section id="scoreSection" class="section">
+
+    <h2>ENTER MATCH SCORE</h2>
+
+    <div class="card">
+
+      <label>SELECT MATCH</label>
+      <select id="matchSelect" onchange="loadScoreForm()"></select>
+
+      <div id="scoreForm"></div>
+
+      <button onclick="saveScore()">Save Match Result</button>
+
+      <p id="scoreMsg" class="msg"></p>
+
+    </div>
+
+  </section>
+
+  <!-- CUSTOM MATCH -->
+
+  <section id="customSection" class="section">
+
+    <h2>CUSTOM MATCH SELECTION</h2>
+
+    <div class="card">
+
+      <label>ROUND / MATCH NAME</label>
+      <input id="customRound" placeholder="e.g. Semi Final">
+
+      <label>TEAM A</label>
+      <select id="customA"></select>
+
+      <label>TEAM B</label>
+      <select id="customB"></select>
+
+      <button onclick="createCustomMatch()">Create Fixture</button>
+
+      <p id="customMsg" class="msg"></p>
+
+    </div>
+
+    <h2>TEAM STANDINGS</h2>
+    <div id="selectionTable" class="table-wrap"></div>
+
+  </section>
+
+  <!-- RESULTS -->
+
+  <section id="resultsSection" class="section">
+
+    <h2>POINTS TABLE PREVIEW</h2>
+    <div id="standings" class="table-wrap"></div>
+
+    <h2 style="margin-top:30px">MATCH RESULTS</h2>
+    <div id="resultsList"></div>
+
+  </section>
+
+</main>
 
 <script>
+const ADMIN_PASSWORD = "samikhan782";
 
-/* LOGIN */
+// Memory fallback prevents the interface from crashing if browser storage
+// is unavailable. Persistent sharing between pages still requires the same
+// origin (for example, both pages opened through the same Live Server URL).
+const memoryStore = Object.create(null);
+let storageAvailable = true;
+let teams = readData("teams", []);
+let matches = readData("matches", []);
 
-function login(){
-
-let pass =
-document.getElementById("password").value
-
-if(pass === "samikhan782"){
-
-document.getElementById("login")
-.classList.add("hidden")
-
-document.getElementById("adminPanel")
-.classList.remove("hidden")
-
-loadTeams()
-
-}else{
-
-document.getElementById("msg")
-.innerText = "❌ Wrong Password"
-
+function showNotice(message, isError = false) {
+  const box = document.getElementById("appNotice");
+  if (!box) return;
+  box.textContent = message;
+  box.classList.toggle("show", Boolean(message));
+  box.classList.toggle("error", Boolean(isError));
 }
 
+function safeGetItem(key) {
+  if (!storageAvailable && Object.prototype.hasOwnProperty.call(memoryStore, key)) {
+    return memoryStore[key];
+  }
+  try {
+    const value = window.localStorage.getItem(key);
+    if (value !== null) memoryStore[key] = value;
+    return value !== null ? value : (memoryStore[key] ?? null);
+  } catch (error) {
+    storageAvailable = false;
+    showNotice(
+      "Browser storage is blocked. Open this page and fixtures.html using the same VS Code Live Server address to save and share tournament data.",
+      true
+    );
+    return memoryStore[key] ?? null;
+  }
 }
 
-/* LOAD TEAMS */
-
-function loadTeams(){
-
-let teams =
-JSON.parse(localStorage.getItem("teams")) || []
-
-let container =
-document.getElementById("teams")
-
-container.innerHTML = ""
-
-/* EMPTY */
-
-if(teams.length === 0){
-
-container.innerHTML = `
-<h3 style="text-align:center;">
-No Teams Registered Yet
-</h3>
-`
-
-return
-
+function safeSetItem(key, value) {
+  const stringValue = String(value);
+  memoryStore[key] = stringValue;
+  try {
+    window.localStorage.setItem(key, stringValue);
+    return true;
+  } catch (error) {
+    storageAvailable = false;
+    showNotice(
+      "Browser storage is blocked, so changes may not survive a refresh or appear on the public page. Open admin.html and fixtures.html from the same VS Code Live Server address.",
+      true
+    );
+    return false;
+  }
 }
 
-/* LOOP */
-
-teams.forEach((team,index)=>{
-
-let playersHTML = ""
-
-let players = team.players || []
-
-players.forEach((player,i)=>{
-
-playersHTML += `
-
-<input
-type="text"
-id="p${index}_${i}"
-value="${player || ''}"
-placeholder="Player ${i+1}">
-
-`
-
-})
-
-container.innerHTML += `
-
-<div class="card">
-
-<label>Team Name</label>
-
-<input
-type="text"
-id="teamName${index}"
-value="${team.teamName || ''}">
-
-<label>Captain</label>
-
-<input
-type="text"
-id="captain${index}"
-value="${team.captain || ''}">
-
-<label>Vice Captain</label>
-
-<input
-type="text"
-id="vice${index}"
-value="${team.viceCaptain || ''}">
-
-<label>Contact Number</label>
-
-<input
-type="text"
-id="contact${index}"
-value="${team.contact || ''}">
-
-<h4 style="margin-top:15px;color:gold;">
-🏏 Players Squad
-</h4>
-
-<div class="players">
-
-${playersHTML}
-
-</div>
-
-<div class="btn-group">
-
-<button
-class="save-btn"
-onclick="saveTeam(${index})">
-
-Save
-
-</button>
-
-<button
-class="delete-btn"
-onclick="deleteTeam(${index})">
-
-Delete
-
-</button>
-
-</div>
-
-</div>
-
-`
-
-})
-
+function readData(key, fallback) {
+  try {
+    const raw = safeGetItem(key);
+    if (raw === null || raw === "") return fallback;
+    const parsed = JSON.parse(raw);
+    // This Admin Panel expects team and match collections to be arrays.
+    return Array.isArray(parsed) ? parsed : fallback;
+  } catch (error) {
+    console.warn("Could not read stored data for", key, error);
+    return fallback;
+  }
 }
 
-/* SAVE TEAM */
+function syncPublicFixtures() {
+  const roundCounters = {};
+  const publicFixtures = (Array.isArray(matches) ? matches : [])
+    .slice()
+    .sort((a, b) => (Number(a.roundNumber) || 1) - (Number(b.roundNumber) || 1))
+    .map((m) => {
+      const roundName = m.round || `Round ${Number(m.roundNumber) || 1}`;
+      roundCounters[roundName] = (roundCounters[roundName] || 0) + 1;
+      const isBye = m.status === "bye" || m.teamB === "BYE";
 
-function saveTeam(index){
+      return {
+        id: m.id,
+        type: isBye ? "bye" : "match",
+        round: roundName,
+        roundName,
+        roundNumber: Number(m.roundNumber) || 1,
+        matchNumber: roundCounters[roundName],
+        teamA: m.teamA || "TBA",
+        teamB: m.teamB || (isBye ? "BYE" : "TBA"),
+        scoreA: m.scoreA ?? "",
+        scoreB: m.scoreB ?? "",
+        oversA: m.oversA ?? "",
+        oversB: m.oversB ?? "",
+        winner: m.winner || "",
+        status: m.status || "pending"
+      };
+    });
 
-let teams =
-JSON.parse(localStorage.getItem("teams")) || []
-
-if(!teams[index]) return
-
-/* TEAM NAME */
-
-teams[index].teamName =
-document.getElementById("teamName"+index).value
-
-/* CAPTAIN */
-
-teams[index].captain =
-document.getElementById("captain"+index).value
-
-/* VICE CAPTAIN */
-
-teams[index].viceCaptain =
-document.getElementById("vice"+index).value
-
-/* CONTACT */
-
-teams[index].contact =
-document.getElementById("contact"+index).value
-
-/* PLAYERS */
-
-let updatedPlayers = []
-
-let oldPlayers =
-teams[index].players || []
-
-for(let i=0;i<oldPlayers.length;i++){
-
-let input =
-document.getElementById(`p${index}_${i}`)
-
-if(input){
-
-updatedPlayers.push(input.value)
-
+  safeSetItem("fixtures", JSON.stringify(publicFixtures));
 }
 
+function persist() {
+  const teamsSaved = safeSetItem("teams", JSON.stringify(teams));
+  const matchesSaved = safeSetItem("matches", JSON.stringify(matches));
+  syncPublicFixtures();
+  return teamsSaved && matchesSaved && storageAvailable;
 }
 
-teams[index].players = updatedPlayers
-
-/* SAVE */
-
-localStorage.setItem(
-"teams",
-JSON.stringify(teams)
-)
-
-/* RELOAD */
-
-loadTeams()
-
-alert("✅ Team Updated Successfully")
-
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#39;"
+  })[c]);
 }
 
-/* DELETE TEAM */
-
-function deleteTeam(index){
-
-let teams =
-JSON.parse(localStorage.getItem("teams")) || []
-
-if(confirm("Delete this team permanently?")){
-
-teams.splice(index,1)
-
-localStorage.setItem(
-"teams",
-JSON.stringify(teams)
-)
-
-loadTeams()
-
+function makeId() {
+  return "M" + Date.now().toString(36) +
+    Math.random().toString(36).slice(2,5);
 }
 
+function login() {
+  const enteredPassword = document.getElementById("password").value.trim();
+  if (enteredPassword === ADMIN_PASSWORD) {
+    document.getElementById("login").classList.add("hidden");
+    document.getElementById("adminPanel").classList.remove("hidden");
+    document.getElementById("loginMsg").textContent = "";
+    refresh();
+  } else {
+    document.getElementById("loginMsg").textContent = "Incorrect password.";
+  }
 }
+
+document.getElementById("password").addEventListener("keydown", e => {
+  if (e.key === "Enter") login();
+});
+
+document.querySelectorAll("[data-tab]").forEach(button => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll("[data-tab]").forEach(b =>
+      b.classList.toggle("active", b === button)
+    );
+
+    document.querySelectorAll(".section").forEach(section =>
+      section.classList.toggle("active", section.id === button.dataset.tab)
+    );
+
+    refresh();
+  });
+});
+
+/* TEAM MANAGEMENT */
+
+function addTeam() {
+  const name = document.getElementById("newTeam").value.trim();
+
+  if (!name) return alert("Enter a team name.");
+
+  if (teams.some(t => String(t?.teamName || "").toLowerCase() === name.toLowerCase())) {
+    return alert("This team already exists.");
+  }
+
+  const players = document.getElementById("newPlayers").value
+    .split("\n").map(p => p.trim()).filter(Boolean);
+
+  teams.push({
+    id: makeId(),
+    teamName: name,
+    captain: document.getElementById("newCaptain").value.trim(),
+    viceCaptain: document.getElementById("newVice").value.trim(),
+    contact: document.getElementById("newContact").value.trim(),
+    players
+  });
+
+  persist();
+
+  ["newTeam","newCaptain","newVice","newContact","newPlayers"]
+    .forEach(id => document.getElementById(id).value = "");
+
+  refresh();
+}
+
+function renderTeams() {
+  const root = document.getElementById("teamsList");
+
+  if (!teams.length) {
+    root.innerHTML = '<p class="muted">No teams registered.</p>';
+    return;
+  }
+
+  root.innerHTML = teams.map((t, i) => `
+    <div class="card">
+      <h3>${escapeHTML(t.teamName)}</h3>
+
+      <label>TEAM NAME</label>
+      <input id="teamName${i}" value="${escapeHTML(t.teamName)}">
+
+      <label>CAPTAIN</label>
+      <input id="captain${i}" value="${escapeHTML(t.captain)}">
+
+      <label>VICE CAPTAIN</label>
+      <input id="vice${i}" value="${escapeHTML(t.viceCaptain)}">
+
+      <label>CONTACT</label>
+      <input id="contact${i}" value="${escapeHTML(t.contact)}">
+
+      <label>PLAYERS — ONE PER LINE</label>
+      <textarea id="players${i}" rows="5">${escapeHTML((t.players || []).join("\n"))}</textarea>
+
+      <button class="green" onclick="saveTeam(${i})">Save Changes</button>
+      <button class="danger" onclick="deleteTeam(${i})">Delete Team</button>
+    </div>
+  `).join("");
+}
+
+function saveTeam(i) {
+  const oldName = teams[i].teamName;
+  const name = document.getElementById("teamName" + i).value.trim();
+
+  if (!name) return alert("Team name is required.");
+
+  if (teams.some((t, j) =>
+    j !== i && String(t?.teamName || "").toLowerCase() === name.toLowerCase()
+  )) {
+    return alert("That team name already exists.");
+  }
+
+  teams[i].teamName = name;
+  teams[i].captain = document.getElementById("captain" + i).value.trim();
+  teams[i].viceCaptain = document.getElementById("vice" + i).value.trim();
+  teams[i].contact = document.getElementById("contact" + i).value.trim();
+  teams[i].players = document.getElementById("players" + i).value
+    .split("\n").map(p => p.trim()).filter(Boolean);
+
+  matches.forEach(m => {
+    if (m.teamA === oldName) m.teamA = name;
+    if (m.teamB === oldName) m.teamB = name;
+    if (m.winner === oldName) m.winner = name;
+  });
+
+  persist();
+  refresh();
+  alert("Team updated.");
+}
+
+function deleteTeam(i) {
+  if (!confirm("Delete this team? Existing match records will remain.")) return;
+  teams.splice(i, 1);
+  persist();
+  refresh();
+}
+
+/* KNOCKOUT FIXTURES */
+
+// Proper unbiased Fisher-Yates shuffle.
+function shuffleArray(items) {
+  const shuffled = [...items];
+
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  return shuffled;
+}
+
+// Select a bye team randomly. In later rounds, prefer teams that have
+// not already received a bye, so the same team does not keep getting one.
+function chooseByeTeam(teamNames, previousByeTeams = []) {
+  if (!teamNames.length) return null;
+
+  const previousSet = new Set(previousByeTeams);
+  const teamsWithoutPreviousBye = teamNames.filter(name => !previousSet.has(name));
+  const eligible = teamsWithoutPreviousBye.length
+    ? teamsWithoutPreviousBye
+    : teamNames;
+
+  const randomIndex = Math.floor(Math.random() * eligible.length);
+  return eligible[randomIndex];
+}
+
+// Create one round from a set of teams/winners. If the number is odd,
+// select the bye recipient randomly instead of automatically using the last team.
+function createRoundFixtures(teamNames, roundNumber, roundName) {
+  let participants = [...teamNames];
+  const newFixtures = [];
+  let byeTeam = null;
+
+  if (participants.length % 2 === 1) {
+    const previousByeTeams = matches
+      .filter(m => m.status === "bye" && m.teamA)
+      .map(m => m.teamA);
+
+    byeTeam = chooseByeTeam(participants, previousByeTeams);
+    participants = participants.filter(name => name !== byeTeam);
+  }
+
+  // Shuffle all remaining teams before pairing them.
+  participants = shuffleArray(participants);
+
+  for (let i = 0; i < participants.length; i += 2) {
+    const teamA = participants[i];
+    const teamB = participants[i + 1];
+
+    newFixtures.push({
+      id: makeId(),
+      round: roundName,
+      roundNumber,
+      teamA,
+      teamB,
+      scoreA: null,
+      scoreB: null,
+      oversA: null,
+      oversB: null,
+      status: "pending",
+      winner: null
+    });
+  }
+
+  // Add the bye fixture at a random position, so it is not always the last fixture.
+  if (byeTeam) {
+    const byeFixture = {
+      id: makeId(),
+      round: roundName,
+      roundNumber,
+      teamA: byeTeam,
+      teamB: "BYE",
+      scoreA: null,
+      scoreB: null,
+      oversA: null,
+      oversB: null,
+      status: "bye",
+      winner: byeTeam
+    };
+
+    const insertAt = Math.floor(Math.random() * (newFixtures.length + 1));
+    newFixtures.splice(insertAt, 0, byeFixture);
+  }
+
+  return newFixtures;
+}
+
+function generateFirstRound() {
+  if (teams.length < 2) {
+    return alert("Register at least two teams.");
+  }
+
+  if (matches.some(m => Number(m.roundNumber) === 1)) {
+    return alert("First-round fixtures already exist.");
+  }
+
+  const teamNames = teams.map(t => t.teamName).filter(Boolean);
+  const newFixtures = createRoundFixtures(teamNames, 1, "Round 1");
+
+  matches.push(...newFixtures);
+  persist();
+  refresh();
+}
+
+function generateNextRound() {
+  if (!matches.length) {
+    return alert("Generate the first round first.");
+  }
+
+  const currentRound = Math.max(...matches.map(m => Number(m.roundNumber) || 1));
+  const roundMatches = matches.filter(
+    m => (Number(m.roundNumber) || 1) === currentRound
+  );
+
+  if (!roundMatches.length) {
+    return alert("No matches found in the current round.");
+  }
+
+  if (roundMatches.some(m => !["completed", "bye"].includes(m.status))) {
+    return alert("Enter the result of every match in the current round first.");
+  }
+
+  const winners = roundMatches.map(m => m.winner).filter(Boolean);
+
+  if (winners.length < 2) {
+    return alert("The tournament has reached its final winner; no further round is needed.");
+  }
+
+  if (matches.some(m => (Number(m.roundNumber) || 1) === currentRound + 1)) {
+    return alert("The next round already exists.");
+  }
+
+  // Shuffle winners first, then randomly select a bye recipient if this is an odd number.
+  const shuffledWinners = shuffleArray(winners);
+  const nextRoundNumber = currentRound + 1;
+  const nextFixtures = createRoundFixtures(
+    shuffledWinners,
+    nextRoundNumber,
+    "Round " + nextRoundNumber
+  );
+
+  matches.push(...nextFixtures);
+  persist();
+  refresh();
+  alert("Next round generated. Teams were shuffled randomly, and any bye was assigned randomly.");
+}
+
+function renderFixtures() {
+  const root = document.getElementById("fixturesList");
+
+  if (!matches.length) {
+    root.innerHTML = '<p class="muted">No fixtures generated.</p>';
+    return;
+  }
+
+  root.innerHTML = [...matches]
+    .sort((a,b) => a.roundNumber - b.roundNumber)
+    .map(m => `
+      <div class="fixture ${m.status === "pending" ? "pending" : ""}">
+        <h3>${escapeHTML(m.round)} — ${escapeHTML(m.id)}</h3>
+        <p>${escapeHTML(m.teamA)} ${m.status === "completed" ? "(" + m.scoreA + ")" : ""}</p>
+        <p>${escapeHTML(m.teamB)} ${m.status === "completed" ? "(" + m.scoreB + ")" : ""}</p>
+        <p class="muted">
+          ${m.status === "completed" ? "Winner: " + escapeHTML(m.winner) :
+            m.status === "bye" ? "Bye — advances automatically" : "Awaiting result"}
+        </p>
+        <button class="secondary" onclick="openScore('${m.id}')">Enter / Edit Score</button>
+        <button class="danger" onclick="deleteFixture('${m.id}')">Delete Fixture</button>
+      </div>
+    `).join("");
+}
+
+function deleteFixture(id) {
+  if (!confirm("Delete this fixture?")) return;
+  matches = matches.filter(m => m.id !== id);
+  persist();
+  refresh();
+}
+
+function openScore(id) {
+  document.querySelector('[data-tab="scoreSection"]').click();
+  document.getElementById("matchSelect").value = id;
+  loadScoreForm();
+}
+
+/* SCORE ENTRY */
+
+function renderMatchSelect() {
+  const select = document.getElementById("matchSelect");
+  const old = select.value;
+
+  const available = matches.filter(m =>
+    m.status === "pending" || m.status === "completed"
+  );
+
+  select.innerHTML = available.map(m => `
+    <option value="${escapeHTML(m.id)}">
+      ${escapeHTML(m.round)}: ${escapeHTML(m.teamA)} vs ${escapeHTML(m.teamB)}
+    </option>
+  `).join("");
+
+  if (!available.length) {
+    select.innerHTML = '<option value="">No pending fixtures</option>';
+  }
+
+  if (available.some(m => m.id === old)) select.value = old;
+
+  loadScoreForm();
+}
+
+function loadScoreForm() {
+  const m = matches.find(x =>
+    x.id === document.getElementById("matchSelect").value
+  );
+
+  const root = document.getElementById("scoreForm");
+
+  if (!m) {
+    root.innerHTML = '<p class="muted">Generate a fixture first.</p>';
+    return;
+  }
+
+  root.innerHTML = `
+    <div class="row">
+      <div>
+        <label>${escapeHTML(m.teamA)} RUNS</label>
+        <input type="number" id="scoreA" min="0" value="${m.scoreA ?? ""}">
+        <label>${escapeHTML(m.teamA)} OVERS</label>
+        <input type="text" id="oversA" placeholder="6.0" value="${m.oversA ?? ""}">
+      </div>
+      <div>
+        <label>${escapeHTML(m.teamB)} RUNS</label>
+        <input type="number" id="scoreB" min="0" value="${m.scoreB ?? ""}">
+        <label>${escapeHTML(m.teamB)} OVERS</label>
+        <input type="text" id="oversB" placeholder="6.0" value="${m.oversB ?? ""}">
+      </div>
+    </div>
+    <p class="muted">Use cricket overs notation: 5.4 means 5 overs and 4 balls.</p>
+  `;
+}
+
+function oversToBalls(value) {
+  const parts = String(value).trim().split(".");
+  const overs = Number(parts[0]);
+  const balls = parts.length > 1 ? Number(parts[1]) : 0;
+
+  if (!Number.isInteger(overs) || !Number.isInteger(balls) ||
+      overs < 0 || balls < 0 || balls > 5) return NaN;
+
+  return overs * 6 + balls;
+}
+
+function saveScore() {
+  const m = matches.find(x =>
+    x.id === document.getElementById("matchSelect").value
+  );
+
+  if (!m) return alert("Select a match.");
+
+  const a = Number(document.getElementById("scoreA").value);
+  const b = Number(document.getElementById("scoreB").value);
+
+  const ballsA = oversToBalls(document.getElementById("oversA").value);
+  const ballsB = oversToBalls(document.getElementById("oversB").value);
+
+  if (!Number.isInteger(a) || a < 0 || !Number.isInteger(b) || b < 0) {
+    return alert("Enter valid scores.");
+  }
+
+  if (!Number.isFinite(ballsA) || ballsA <= 0 ||
+      !Number.isFinite(ballsB) || ballsB <= 0) {
+    return alert("Enter valid overs, such as 5.4 or 6.0.");
+  }
+
+  if (a === b) {
+    return alert("A knockout match needs a winner. Enter the final result after any tie-breaker.");
+  }
+
+  m.scoreA = a;
+  m.scoreB = b;
+  m.oversABalls = ballsA;
+  m.oversBBalls = ballsB;
+  m.oversA = ballsA / 6;
+  m.oversB = ballsB / 6;
+  m.winner = a > b ? m.teamA : m.teamB;
+  m.status = "completed";
+
+  persist();
+  refresh();
+
+  document.getElementById("scoreMsg").textContent =
+    "Result saved. Winner: " + m.winner;
+}
+
+/* CUSTOM MATCH */
+
+function renderCustomOptions() {
+  const a = document.getElementById("customA");
+  const b = document.getElementById("customB");
+
+  const oldA = a.value;
+  const oldB = b.value;
+
+  const options = teams.map(t =>
+    `<option value="${escapeHTML(t.teamName)}">${escapeHTML(t.teamName)}</option>`
+  ).join("");
+
+  a.innerHTML = options;
+  b.innerHTML = options;
+
+  if (teams.some(t => t.teamName === oldA)) a.value = oldA;
+  if (teams.some(t => t.teamName === oldB)) b.value = oldB;
+
+  renderSelectionTable();
+}
+
+function createCustomMatch() {
+  const a = document.getElementById("customA").value;
+  const b = document.getElementById("customB").value;
+
+  const round = document.getElementById("customRound").value.trim() ||
+    "Custom Match";
+
+  if (!a || !b) return alert("Register two teams first.");
+  if (a === b) return alert("Choose two different teams.");
+
+  matches.push({
+    id: makeId(),
+    round,
+    roundNumber: Math.max(1, ...matches.map(m => m.roundNumber || 1)) + 1,
+    teamA: a,
+    teamB: b,
+    scoreA: null,
+    scoreB: null,
+    oversA: null,
+    oversB: null,
+    status: "pending",
+    winner: null,
+    custom: true
+  });
+
+  persist();
+  refresh();
+
+  document.getElementById("customMsg").textContent =
+    "Fixture created: " + a + " vs " + b;
+}
+
+/* STANDINGS */
+
+function getStandings() {
+  const stats = {};
+
+  function ensure(name) {
+    if (!stats[name]) {
+      stats[name] = {
+        name, matches:0, wins:0, losses:0, points:0,
+        runsFor:0, runsAgainst:0, ballsFor:0, ballsAgainst:0
+      };
+    }
+    return stats[name];
+  }
+
+  teams.forEach(t => ensure(t.teamName));
+
+  matches.filter(m => m.status === "completed").forEach(m => {
+    const a = ensure(m.teamA);
+    const b = ensure(m.teamB);
+
+    a.matches++;
+    b.matches++;
+
+    a.runsFor += Number(m.scoreA) || 0;
+    a.runsAgainst += Number(m.scoreB) || 0;
+    b.runsFor += Number(m.scoreB) || 0;
+    b.runsAgainst += Number(m.scoreA) || 0;
+
+    const ballsA = Number(m.oversABalls) || Math.round((Number(m.oversA) || 0) * 6);
+    const ballsB = Number(m.oversBBalls) || Math.round((Number(m.oversB) || 0) * 6);
+
+    a.ballsFor += ballsA;
+    a.ballsAgainst += ballsB;
+    b.ballsFor += ballsB;
+    b.ballsAgainst += ballsA;
+
+    if (m.winner === m.teamA) {
+      a.wins++;
+      b.losses++;
+      a.points += 2;
+    } else if (m.winner === m.teamB) {
+      b.wins++;
+      a.losses++;
+      b.points += 2;
+    }
+  });
+
+  return Object.values(stats).map(t => ({
+    ...t,
+    nrr: (t.ballsFor ? t.runsFor / (t.ballsFor / 6) : 0) -
+         (t.ballsAgainst ? t.runsAgainst / (t.ballsAgainst / 6) : 0)
+  })).sort((a,b) =>
+    b.points - a.points || b.nrr - a.nrr
+  );
+}
+
+function renderSelectionTable() {
+  const rows = getStandings();
+
+  document.getElementById("selectionTable").innerHTML = `
+    <table>
+      <thead><tr>
+        <th>Team</th><th>M</th><th>W</th><th>L</th><th>Pts</th><th>NRR</th>
+      </tr></thead>
+      <tbody>
+        ${rows.map(t => `
+          <tr>
+            <td>${escapeHTML(t.name)}</td>
+            <td>${t.matches}</td><td>${t.wins}</td><td>${t.losses}</td>
+            <td>${t.points}</td><td>${t.nrr.toFixed(2)}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+function renderResults() {
+  const rows = getStandings();
+
+  document.getElementById("standings").innerHTML = `
+    <table>
+      <thead><tr>
+        <th>Team</th><th>M</th><th>W</th><th>L</th><th>Pts</th><th>NRR</th>
+      </tr></thead>
+      <tbody>
+        ${rows.map(t => `
+          <tr>
+            <td>${escapeHTML(t.name)}</td>
+            <td>${t.matches}</td><td>${t.wins}</td><td>${t.losses}</td>
+            <td>${t.points}</td><td>${t.nrr.toFixed(2)}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+
+  document.getElementById("resultsList").innerHTML = matches.map(m => `
+    <div class="fixture">
+      <h3>${escapeHTML(m.round)}</h3>
+      <p>${escapeHTML(m.teamA)} — ${m.scoreA ?? "—"}</p>
+      <p>${escapeHTML(m.teamB)} — ${m.scoreB ?? "—"}</p>
+      <p class="muted">
+        ${m.status === "completed" ? "Winner: " + escapeHTML(m.winner) :
+          m.status === "bye" ? "Bye" : "Pending"}
+      </p>
+    </div>
+  `).join("");
+}
+
+function refresh() {
+  // Reload persisted state only when storage can be read normally. This avoids
+  // wiping the in-memory session if the browser blocks localStorage.
+  const storedTeams = readData("teams", null);
+  const storedMatches = readData("matches", null);
+  if (Array.isArray(storedTeams)) teams = storedTeams;
+  if (Array.isArray(storedMatches)) matches = storedMatches;
+
+  if (!Array.isArray(teams)) teams = [];
+  if (!Array.isArray(matches)) matches = [];
+
+  // Publish existing match records to fixtures.html as well.
+  syncPublicFixtures();
+
+  try {
+    renderTeams();
+    renderFixtures();
+    renderMatchSelect();
+    renderCustomOptions();
+    renderResults();
+  } catch (error) {
+    console.error("Admin Panel refresh failed:", error);
+    showNotice("The Admin Panel hit an error while refreshing. Open the browser Console (F12) and check the first red error message.", true);
+  }
+}
+
+
+window.addEventListener("error", function (event) {
+  console.error("Admin Panel error:", event.error || event.message);
+  showNotice("Admin Panel error: " + (event.message || "Unknown JavaScript error") + ". Open F12 → Console for details.", true);
+});
+
+window.addEventListener("unhandledrejection", function (event) {
+  console.error("Admin Panel promise error:", event.reason);
+  showNotice("Admin Panel encountered an unexpected error. Open F12 → Console for details.", true);
+});
+
 
 </script>
-
 </body>
-
 </html>
