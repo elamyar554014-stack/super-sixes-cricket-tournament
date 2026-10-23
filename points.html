@@ -1,178 +1,399 @@
+```html
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Points Table | Super Sixes</title>
 
-<title>Points Table</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
-
-body{
-font-family:Arial;
-background:#061f17;
-color:white;
-text-align:center;
+:root {
+  --dark:#0A1B13;
+  --panel:#102A1D;
+  --panel2:#0D2318;
+  --cream:#F1EAD8;
+  --dim:#B9AF98;
+  --gold:#D9A441;
+  --green:#7FB37A;
+  --red:#C0392B;
+  --line:rgba(241,234,216,.15);
 }
 
-header{
-background:black;
-padding:15px;
-color:gold;
-font-size:22px;
+* { box-sizing:border-box; margin:0; }
+
+body {
+  background:var(--dark);
+  color:var(--cream);
+  font-family:'Work Sans',sans-serif;
+  padding-bottom:60px;
 }
 
-table{
-width:90%;
-margin:auto;
-margin-top:30px;
-border-collapse:collapse;
+header {
+  padding:22px 6%;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
 }
 
-th,td{
-padding:10px;
-border:1px solid #333;
+h1,h2,h3 {
+  font-family:'Bebas Neue',sans-serif;
+  font-weight:400;
 }
 
-th{
-background:#0d3b2e;
+h1 { font-size:28px; }
+
+header a {
+  color:var(--cream);
+  text-decoration:none;
+  border:1px solid var(--line);
+  padding:10px 15px;
 }
 
+.container {
+  max-width:1000px;
+  margin:40px auto;
+  padding:0 5%;
+}
+
+.heading {
+  display:flex;
+  justify-content:space-between;
+  align-items:end;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-bottom:15px;
+}
+
+.heading h2 { font-size:30px; }
+
+.note {
+  font:10px 'Space Mono',monospace;
+  color:var(--dim);
+  letter-spacing:1px;
+}
+
+.table-wrap {
+  overflow-x:auto;
+  margin-bottom:40px;
+}
+
+table {
+  width:100%;
+  min-width:550px;
+  border-collapse:collapse;
+  background:var(--panel2);
+}
+
+th {
+  background:var(--gold);
+  color:var(--dark);
+  font:11px 'Space Mono',monospace;
+  padding:13px;
+  text-align:center;
+}
+
+th:first-child,td:first-child { text-align:left; }
+
+td {
+  padding:13px;
+  border-bottom:1px solid var(--line);
+  text-align:center;
+  font-size:14px;
+}
+
+.team-name { font-weight:700; }
+
+.rank {
+  display:inline-block;
+  width:28px;
+  color:var(--dim);
+  font:12px 'Space Mono',monospace;
+}
+
+.points {
+  color:var(--gold);
+  font-weight:700;
+}
+
+.positive { color:var(--green); }
+.negative { color:#e47768; }
+
+.empty {
+  background:var(--panel);
+  padding:35px;
+  text-align:center;
+  color:var(--dim);
+  line-height:1.7;
+}
+
+.fixture-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+  gap:14px;
+}
+
+.fixture {
+  background:var(--panel);
+  border-left:3px solid var(--green);
+  padding:18px;
+}
+
+.fixture.pending { border-left-color:var(--gold); }
+
+.fixture h3 {
+  color:var(--gold);
+  font-size:17px;
+  margin-bottom:12px;
+}
+
+.fixture p {
+  padding:8px 0;
+  border-bottom:1px solid var(--line);
+}
+
+.fixture small {
+  display:block;
+  margin-top:12px;
+  color:var(--dim);
+}
+
+.winner { color:var(--green); font-weight:700; }
+
+@media(max-width:600px) {
+  h1 { font-size:23px; }
+  .container { margin-top:28px; }
+}
 </style>
-
 </head>
 
 <body>
 
 <header>
-🏏 SUPER SIXES POINTS TABLE
+  <h1>SUPER SIXES — POINTS TABLE</h1>
+  <a href="index.html">← Back Home</a>
 </header>
 
-<table>
+<main class="container">
 
-<thead>
+  <section>
+    <div class="heading">
+      <h2>TEAM STANDINGS</h2>
+      <span id="tableNote" class="note"></span>
+    </div>
 
-<tr>
+    <div id="tableArea"></div>
+  </section>
 
-<th>Team</th>
-<th>Matches</th>
-<th>Wins</th>
-<th>Loss</th>
-<th>Points</th>
-<th>NRR</th>
+  <section style="margin-top:40px">
+    <div class="heading">
+      <h2>KNOCKOUT FIXTURES</h2>
+      <span class="note">MATCH RESULTS</span>
+    </div>
 
-</tr>
+    <div id="fixtures" class="fixture-grid"></div>
+  </section>
 
-</thead>
-
-<tbody id="pointsTable"></tbody>
-
-</table>
+</main>
 
 <script>
-
-let matches=JSON.parse(localStorage.getItem("matches")) || []
-
-let teams={}
-
-/* CALCULATE TABLE */
-
-matches.forEach(match=>{
-
-if(!teams[match.teamA]){
-
-teams[match.teamA]={
-
-matches:0,
-wins:0,
-loss:0,
-runsFor:0,
-runsAgainst:0,
-oversFor:0,
-oversAgainst:0
-
+function readData(key, fallback) {
+  try {
+    return JSON.parse(localStorage.getItem(key)) || fallback;
+  } catch {
+    return fallback;
+  }
 }
 
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#39;"
+  })[c]);
 }
 
-if(!teams[match.teamB]){
+function getStandings() {
+  const teams = readData("teams", []);
+  const matches = readData("matches", []);
+  const stats = {};
 
-teams[match.teamB]={
+  function ensure(name) {
+    if (!stats[name]) {
+      stats[name] = {
+        name,
+        matches:0,
+        wins:0,
+        losses:0,
+        points:0,
+        runsFor:0,
+        runsAgainst:0,
+        ballsFor:0,
+        ballsAgainst:0
+      };
+    }
+    return stats[name];
+  }
 
-matches:0,
-wins:0,
-loss:0,
-runsFor:0,
-runsAgainst:0,
-oversFor:0,
-oversAgainst:0
+  teams.forEach(t => ensure(t.teamName));
 
+  matches.filter(m => m.status === "completed").forEach(m => {
+    const a = ensure(m.teamA);
+    const b = ensure(m.teamB);
+
+    a.matches++;
+    b.matches++;
+
+    a.runsFor += Number(m.scoreA) || 0;
+    a.runsAgainst += Number(m.scoreB) || 0;
+
+    b.runsFor += Number(m.scoreB) || 0;
+    b.runsAgainst += Number(m.scoreA) || 0;
+
+    const ballsA = Number(m.oversABalls) ||
+      Math.round((Number(m.oversA) || 0) * 6);
+
+    const ballsB = Number(m.oversBBalls) ||
+      Math.round((Number(m.oversB) || 0) * 6);
+
+    a.ballsFor += ballsA;
+    a.ballsAgainst += ballsB;
+
+    b.ballsFor += ballsB;
+    b.ballsAgainst += ballsA;
+
+    if (m.winner === m.teamA) {
+      a.wins++;
+      b.losses++;
+      a.points += 2;
+    } else if (m.winner === m.teamB) {
+      b.wins++;
+      a.losses++;
+      b.points += 2;
+    }
+  });
+
+  return Object.values(stats).map(t => ({
+    ...t,
+    nrr:
+      (t.ballsFor ? t.runsFor / (t.ballsFor / 6) : 0) -
+      (t.ballsAgainst ? t.runsAgainst / (t.ballsAgainst / 6) : 0)
+  })).sort((a,b) =>
+    b.points - a.points || b.nrr - a.nrr
+  );
 }
 
+function renderPointsTable() {
+  const rows = getStandings();
+
+  document.getElementById("tableNote").textContent =
+    rows.length + " TEAMS • SORTED BY POINTS";
+
+  const area = document.getElementById("tableArea");
+
+  if (!rows.length) {
+    area.innerHTML = `
+      <div class="empty">
+        No teams registered yet.<br>
+        Register teams in the Admin Panel to begin.
+      </div>`;
+    return;
+  }
+
+  area.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Team</th>
+            <th>M</th>
+            <th>W</th>
+            <th>L</th>
+            <th>Pts</th>
+            <th>NRR</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          ${rows.map((t,i) => `
+            <tr>
+              <td>
+                <span class="rank">${i+1}</span>
+                <span class="team-name">${escapeHTML(t.name)}</span>
+              </td>
+              <td>${t.matches}</td>
+              <td>${t.wins}</td>
+              <td>${t.losses}</td>
+              <td class="points">${t.points}</td>
+              <td class="${t.nrr>0?'positive':t.nrr<0?'negative':''}">
+                ${t.nrr>0?'+':''}${t.nrr.toFixed(2)}
+              </td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>`;
 }
 
-teams[match.teamA].matches++
-teams[match.teamB].matches++
+function renderFixtures() {
+  const matches = readData("matches", []);
+  const root = document.getElementById("fixtures");
 
-teams[match.teamA].runsFor+=match.scoreA
-teams[match.teamA].runsAgainst+=match.scoreB
-teams[match.teamA].oversFor+=match.oversA
-teams[match.teamA].oversAgainst+=match.oversB
+  if (!matches.length) {
+    root.innerHTML = `
+      <div class="empty">
+        No fixtures have been generated yet.
+      </div>`;
+    return;
+  }
 
-teams[match.teamB].runsFor+=match.scoreB
-teams[match.teamB].runsAgainst+=match.scoreA
-teams[match.teamB].oversFor+=match.oversB
-teams[match.teamB].oversAgainst+=match.oversA
+  root.innerHTML = [...matches]
+    .sort((a,b) => (a.roundNumber || 1) - (b.roundNumber || 1))
+    .map(m => `
+      <article class="fixture ${m.status === "pending" ? "pending" : ""}">
+        <h3>${escapeHTML(m.round || "Match")}</h3>
 
-if(match.scoreA>match.scoreB){
+        <p class="${m.winner === m.teamA ? "winner" : ""}">
+          ${escapeHTML(m.teamA)}
+          ${m.status === "completed" ? "(" + m.scoreA + ")" : ""}
+        </p>
 
-teams[match.teamA].wins++
-teams[match.teamB].loss++
+        <p class="${m.winner === m.teamB ? "winner" : ""}">
+          ${escapeHTML(m.teamB)}
+          ${m.status === "completed" ? "(" + m.scoreB + ")" : ""}
+        </p>
 
+        <small>
+          ${m.status === "completed"
+            ? "Winner: " + escapeHTML(m.winner)
+            : m.status === "bye"
+              ? "Bye — advances automatically"
+              : "Awaiting result"}
+        </small>
+      </article>
+    `).join("");
 }
 
-else if(match.scoreB>match.scoreA){
-
-teams[match.teamB].wins++
-teams[match.teamA].loss++
-
+function renderPage() {
+  renderPointsTable();
+  renderFixtures();
 }
 
-})
+renderPage();
 
-/* DISPLAY TABLE */
+/* Refresh if another open page changes tournament data. */
+window.addEventListener("storage", renderPage);
 
-let table=document.getElementById("pointsTable")
-
-for(let team in teams){
-
-let t=teams[team]
-
-let points=t.wins*2
-
-let runRateFor=t.runsFor/t.oversFor
-let runRateAgainst=t.runsAgainst/t.oversAgainst
-
-let nrr=(runRateFor-runRateAgainst).toFixed(2)
-
-table.innerHTML+=`
-
-<tr>
-
-<td>${team}</td>
-<td>${t.matches}</td>
-<td>${t.wins}</td>
-<td>${t.loss}</td>
-<td>${points}</td>
-<td>${nrr}</td>
-
-</tr>
-
-`
-
-}
-
+/* Refresh this page when revisited or focused. */
+window.addEventListener("focus", renderPage);
 </script>
 
 </body>
-
 </html>
+```
