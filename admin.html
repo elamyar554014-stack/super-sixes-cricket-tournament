@@ -1215,11 +1215,64 @@ async function saveTeam(i) {
   );
 }
 
-function deleteTeam(i) {
-  if (!confirm("Delete this team? Existing match records will remain.")) return;
+  
+  async function deleteTeam(i) {
+  const team = teams[i];
+
+  if (!team) {
+    return alert("Team not found.");
+  }
+
+  const confirmed = confirm(
+    `Delete "${team.teamName}"?\n\n` +
+    "This action cannot be undone."
+  );
+
+  if (!confirmed) return;
+
+  // Delete online registrations from Supabase first.
+  if (team.source === "supabase" && team.id) {
+    try {
+      const { data, error } = await supabaseClient
+        .from("team_registrations")
+        .delete()
+        .eq("id", team.id)
+        .select("id");
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        return alert(
+          "The database did not delete this registration. " +
+          "Check your Supabase DELETE policy and admin login."
+        );
+      }
+    } catch (error) {
+      console.error("Supabase team deletion failed:", error);
+
+      return alert(
+        "Could not delete the online registration.\n\n" +
+        (error.message || "Unknown database error")
+      );
+    }
+  }
+
+  // Remove from the local tournament list after online deletion succeeds.
   teams.splice(i, 1);
+
   persist();
-  refresh();
+
+  renderTeams();
+  renderFixtures();
+  renderMatchSelect();
+  renderCustomOptions();
+  renderResults();
+
+  alert(
+    team.source === "supabase"
+      ? "Team registration deleted from the online database."
+      : "Local team deleted."
+  );
 }
 
 /* KNOCKOUT FIXTURES */
