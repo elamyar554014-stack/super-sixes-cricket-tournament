@@ -1265,7 +1265,7 @@ async function saveTeam(i) {
 }
 
   
- async function deleteTeam(i) {
+async function deleteTeam(i) {
   const team = teams[i];
 
   if (!team) {
@@ -1273,15 +1273,37 @@ async function saveTeam(i) {
   }
 
   const confirmed = confirm(
-    `Delete "${team.teamName}"?\n\n` +
-    "This action cannot be undone."
+    `Delete "${team.teamName}" and its tournament records?\n\n` +
+    "This will remove the team's fixtures and results. This cannot be undone."
   );
 
   if (!confirmed) return;
 
-  // Delete online registrations from Supabase first.
-  if (team.source === "supabase" && team.id) {
-    try {
+  try {
+    // Require an authenticated admin session for online changes.
+    const { data: sessionData, error: sessionError } =
+      await supabaseClient.auth.getSession();
+
+    if (sessionError) throw sessionError;
+
+    if (!sessionData?.session) {
+      return alert("Please log in to the Admin Panel first.");
+    }
+
+    const teamName = team.teamName;
+
+    // Delete matches involving this team from Supabase.
+    const { error: matchError } = await supabaseClient
+      .from("tournament_matches")
+      .delete()
+      .or(
+        `team_a.eq.${JSON.stringify(teamName)},team_b.eq.${JSON.stringify(teamName)}`
+      );
+
+    if (matchError) throw matchError;
+
+    // Delete its online registration if it came from Supabase.
+    if (team.source === "supabase" && team.id) {
       const { data, error } = await supabaseClient
         .from("team_registrations")
         .delete()
@@ -1291,44 +1313,43 @@ async function saveTeam(i) {
       if (error) throw error;
 
       if (!data || data.length === 0) {
-        return alert(
-          "The database did not delete this registration. " +
-          "Check your Supabase DELETE policy and admin login."
+        throw new Error(
+          "The registration was not deleted. Check the Supabase DELETE policy."
         );
       }
-    } catch (error) {
-      console.error("Supabase deletion error:", error);
-
-      alert(
-        "Deletion failed.\n\n" +
-        "Message: " + (error.message || "Unknown error") +
-        "\nCode: " + (error.code || "Not provided") +
-        "\nDetails: " + (error.details || "None") +
-        "\nHint: " + (error.hint || "None")
-      );
-
-      return;
     }
+
+    // Remove this team and its matches from local data.
+    teams = teams.filter(
+      t => !(String(t.id) === String(team.id) && team.source === "supabase")
+    );
+
+    if (team.source !== "supabase") {
+      teams = teams.filter((t, index) => index !== i);
+    }
+
+    matches = matches.filter(
+      m => m.teamA !== teamName && m.teamB !== teamName
+    );
+
+    persist();
+    refresh();
+
+    alert(
+      "Team and its associated fixtures/results were deleted. " +
+      "Refresh the public Points Table and Fixtures pages."
+    );
+
+  } catch (error) {
+    console.error("Team deletion failed:", error);
+
+    alert(
+      "Could not complete team deletion:\n" +
+      (error.message || "Unknown error") +
+      "\n\nCheck the Supabase policies and database before trying again."
+    );
   }
-
-  // Remove from the local tournament list after online deletion succeeds.
-  teams.splice(i, 1);
-
-  persist();
-
-  renderTeams();
-  renderFixtures();
-  renderMatchSelect();
-  renderCustomOptions();
-  renderResults();
-
-  alert(
-    team.source === "supabase"
-      ? "Team registration deleted from the online database."
-      : "Local team deleted."
-  );
 }
-
 /* KNOCKOUT FIXTURES */
 
 // Proper unbiased Fisher-Yates shuffle.
@@ -1504,11 +1525,37 @@ function renderFixtures() {
     `).join("");
 }
 
-function deleteFixture(id) {
-  if (!confirm("Delete this fixture?")) return;
-  matches = matches.filter(m => m.id !== id);
-  persist();
-  refresh();
+async function deleteFixture(id) {
+  if (!confirm("Delete this fixture permanently?")) return;
+
+  try {
+    // Delete the fixture from Supabase first.
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+
+    if (sessionData?.session) {
+      const { error } = await supabaseClient
+        .from("tournament_matches")
+        .delete()
+        .eq("id", String(id));
+
+      if (error) throw error;
+    } else {
+      alert("Please log in to the Admin Panel before deleting online fixtures.");
+      return;
+    }
+
+    // Remove the fixture from the local match list.
+    matches = matches.filter(m => String(m.id) !== String(id));
+
+    // Save and refresh the Admin Panel.
+    persist();
+    refresh();
+
+    alert("Fixture deleted successfully.");
+  } catch (error) {
+    console.error("Fixture deletion failed:", error);
+    alert("Could not delete fixture online: " + error.message);
+  }
 }
 
 function openScore(id) {
