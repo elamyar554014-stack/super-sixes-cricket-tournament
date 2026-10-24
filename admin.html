@@ -631,6 +631,52 @@ function syncPublicFixtures() {
   safeSetItem("fixtures", JSON.stringify(publicFixtures));
 }
 
+  async function syncMatchesToSupabase() {
+  if (!supabaseClient.auth.getSession) {
+    console.error("Supabase client is not ready.");
+    return;
+  }
+
+  const { data: sessionData } = await supabaseClient.auth.getSession();
+
+  if (!sessionData?.session) {
+    console.warn("Please log in to sync matches online.");
+    return;
+  }
+
+  const rows = matches.map((m) => ({
+    id: String(m.id),
+    round: m.round || `Round ${Number(m.roundNumber) || 1}`,
+    round_number: Number(m.roundNumber) || 1,
+    team_a: m.teamA || "TBA",
+    team_b: m.teamB || "TBA",
+    score_a: m.scoreA === "" || m.scoreA == null ? null : Number(m.scoreA),
+    score_b: m.scoreB === "" || m.scoreB == null ? null : Number(m.scoreB),
+    overs_a: m.oversA === "" || m.oversA == null ? null : Number(m.oversA),
+    overs_b: m.oversB === "" || m.oversB == null ? null : Number(m.oversB),
+    overs_a_balls: m.oversABalls ?? null,
+    overs_b_balls: m.oversBBalls ?? null,
+    status: m.status || "pending",
+    winner: m.winner || null,
+    is_custom: Boolean(m.isCustom)
+  }));
+
+  try {
+    if (rows.length) {
+      const { error } = await supabaseClient
+        .from("tournament_matches")
+        .upsert(rows, { onConflict: "id" });
+
+      if (error) throw error;
+    }
+
+    console.log("Match synchronization completed.");
+  } catch (error) {
+    console.error("Could not sync matches to Supabase:", error.message);
+    alert("Online match sync failed: " + error.message);
+  }
+}
+
 function persist() {
   const teamsSaved = safeSetItem("teams", JSON.stringify(teams));
   const matchesSaved = safeSetItem("matches", JSON.stringify(matches));
