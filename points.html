@@ -437,10 +437,26 @@ async function renderPage() {
 
 renderPage();
 
-/* Refresh if another open page changes tournament data. */
+/* Refresh when Supabase reports a match-table change. */
+const pointsRealtime = supabaseClient
+  .channel("points-table-live-updates")
+  .on(
+    "postgres_changes",
+    {
+      event: "*",
+      schema: "public",
+      table: "tournament_matches"
+    },
+    () => renderPage()
+  )
+  .subscribe(status => {
+    console.log("Points Table Realtime:", status);
+  });
+
+/* Refresh when another browser tab changes local storage. */
 window.addEventListener("storage", renderPage);
 
-/* Refresh this page when revisited or focused. */
+/* Refresh when the page regains focus. */
 window.addEventListener("focus", renderPage);
 </script>
 
