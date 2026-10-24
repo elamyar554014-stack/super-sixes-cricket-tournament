@@ -344,6 +344,7 @@ h1 { font-size:23px; }
     <button data-tab="teamFormSection">Received Team Responses</button>
     <button data-tab="fixturesSection">Generate Fixtures</button>
     <button data-tab="scoreSection">Enter Score</button>
+    <button data-tab="liveScoringSection">🔴 Live Scoring</button>
     <button data-tab="customSection">Select Next Match</button>
     <button data-tab="resultsSection">Results & Standings</button>
   </nav>
@@ -484,7 +485,99 @@ h1 { font-size:23px; }
     </div>
 
   </section>
+  
+<!-- LIVE BALL-BY-BALL SCORING -->
 
+<section id="liveScoringSection" class="section">
+  <h2>LIVE BALL-BY-BALL SCORING</h2>
+
+  <div class="card">
+    <p class="muted">
+      Select a fixture, set up the innings, and record each delivery.
+      Your existing match-result system remains separate.
+    </p>
+
+    <label>SELECT MATCH</label>
+    <select id="liveMatchSelect">
+      <option value="">Loading matches...</option>
+    </select>
+
+    <div class="row">
+      <div>
+        <label>BATTING TEAM</label>
+        <select id="liveBattingTeam"></select>
+      </div>
+      <div>
+        <label>BOWLING TEAM</label>
+        <select id="liveBowlingTeam"></select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>STRIKER</label>
+        <input id="liveStriker" placeholder="Batter on strike">
+      </div>
+      <div>
+        <label>NON-STRIKER</label>
+        <input id="liveNonStriker" placeholder="Other batter">
+      </div>
+      <div>
+        <label>BOWLER</label>
+        <input id="liveBowler" placeholder="Current bowler">
+      </div>
+    </div>
+
+    <button class="green" id="startLiveInningsBtn" type="button">
+      Start Innings
+    </button>
+
+    <p id="liveScoringMessage" class="msg" aria-live="polite"></p>
+  </div>
+
+  <div class="card">
+    <h3 id="liveScoreHeading">0/0</h3>
+    <p id="liveOversDisplay" class="muted">Overs: 0.0</p>
+
+    <label>BATTER ON STRIKE</label>
+    <input id="nextStriker" placeholder="Current striker">
+
+    <label>NON-STRIKER</label>
+    <input id="nextNonStriker" placeholder="Other batter">
+
+    <label>CURRENT BOWLER</label>
+    <input id="nextBowler" placeholder="Current bowler">
+
+    <h3>RECORD DELIVERY</h3>
+
+    <div class="form-actions">
+      <button type="button" data-live-action="runs" data-runs="0">0</button>
+      <button type="button" data-live-action="runs" data-runs="1">1</button>
+      <button type="button" data-live-action="runs" data-runs="2">2</button>
+      <button type="button" data-live-action="runs" data-runs="3">3</button>
+      <button type="button" data-live-action="runs" data-runs="4">4</button>
+      <button type="button" data-live-action="runs" data-runs="6">6</button>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" data-live-action="extra" data-extra="wide">Wide</button>
+      <button type="button" data-live-action="extra" data-extra="no_ball">No-ball</button>
+      <button type="button" data-live-action="extra" data-extra="bye">Bye</button>
+      <button type="button" data-live-action="extra" data-extra="leg_bye">Leg-bye</button>
+      <button type="button" class="danger" id="liveWicketBtn">Wicket</button>
+    </div>
+
+    <h3>RECENT DELIVERIES</h3>
+    <div id="liveBallHistory" class="muted">
+      No deliveries recorded yet.
+    </div>
+
+    <button type="button" class="secondary" id="undoLiveBallBtn">
+      Undo Last Delivery
+    </button>
+  </div>
+</section>
+  
   <!-- CUSTOM MATCH -->
 
   <section id="customSection" class="section">
