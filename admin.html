@@ -513,20 +513,29 @@ h1 { font-size:23px; }
       </div>
     </div>
 
-    <div class="row">
-      <div>
-        <label>STRIKER</label>
-        <input id="liveStriker" placeholder="Batter on strike">
-      </div>
-      <div>
-        <label>NON-STRIKER</label>
-        <input id="liveNonStriker" placeholder="Other batter">
-      </div>
-      <div>
-        <label>BOWLER</label>
-        <input id="liveBowler" placeholder="Current bowler">
-      </div>
-    </div>
+    
+<div class="row">
+  <div>
+    <label>STRIKER</label>
+    <select id="liveStriker">
+      <option value="">Select striker</option>
+    </select>
+  </div>
+
+  <div>
+    <label>NON-STRIKER</label>
+    <select id="liveNonStriker">
+      <option value="">Select non-striker</option>
+    </select>
+  </div>
+
+  <div>
+    <label>BOWLER</label>
+    <select id="liveBowler">
+      <option value="">Select bowler</option>
+    </select>
+  </div>
+</div>
 
     <button class="green" id="startLiveInningsBtn" type="button">
       Start Innings
@@ -2161,6 +2170,76 @@ function populateLiveMatchSelect() {
 }
 
 // Populate batting and bowling team dropdowns.
+
+// Get player names from the selected team's squad.
+function getLiveSquadPlayers(teamName) {
+  const team = teams.find(
+    item => item &&
+      String(item.teamName || item.name || item.team_name).trim() ===
+      String(teamName).trim()
+  );
+
+  if (!team) return [];
+
+  let squad = team.players || team.squad || team.squad_members || [];
+
+  if (typeof squad === "string") {
+    try {
+      squad = JSON.parse(squad);
+    } catch {
+      squad = squad.split(/\r?\n|,/);
+    }
+  }
+
+  if (!Array.isArray(squad)) {
+    squad = squad ? [squad] : [];
+  }
+
+  return [...new Set(
+    squad.map(player => {
+      if (player && typeof player === "object") {
+        return String(
+          player.name ||
+          player.player_name ||
+          player.full_name ||
+          ""
+        ).trim();
+      }
+
+      return String(player ?? "").trim();
+    }).filter(Boolean)
+  )];
+}
+
+
+// Fill a player dropdown with squad members.
+function fillLivePlayerSelect(selectId, playerNames, placeholder) {
+  const select = document.getElementById(selectId);
+  if (!select) return;
+
+  const previousValue = select.value;
+
+  select.innerHTML = "";
+
+  const firstOption = document.createElement("option");
+  firstOption.value = "";
+  firstOption.textContent = placeholder;
+  select.appendChild(firstOption);
+
+  playerNames.forEach(name => {
+    const option = document.createElement("option");
+    option.value = name;
+    option.textContent = name;
+    select.appendChild(option);
+  });
+
+  if (playerNames.includes(previousValue)) {
+    select.value = previousValue;
+  }
+}
+
+
+// Update team and player dropdowns for the selected match.
 function updateLiveTeamOptions() {
   const matchSelect = document.getElementById("liveMatchSelect");
   const battingSelect = document.getElementById("liveBattingTeam");
@@ -2175,36 +2254,59 @@ function updateLiveTeamOptions() {
   battingSelect.innerHTML = "";
   bowlingSelect.innerHTML = "";
 
-  if (!match) return;
+  if (!match) {
+    fillLivePlayerSelect("liveStriker", [], "Select striker");
+    fillLivePlayerSelect("liveNonStriker", [], "Select non-striker");
+    fillLivePlayerSelect("liveBowler", [], "Select bowler");
+    return;
+  }
 
-  [match.teamA, match.teamB].forEach(team => {
+  [match.teamA, match.teamB].forEach(teamName => {
     const batOption = document.createElement("option");
-    batOption.value = team;
-    batOption.textContent = team;
+    batOption.value = teamName;
+    batOption.textContent = teamName;
     battingSelect.appendChild(batOption);
 
     const bowlOption = document.createElement("option");
-    bowlOption.value = team;
-    bowlOption.textContent = team;
+    bowlOption.value = teamName;
+    bowlOption.textContent = teamName;
     bowlingSelect.appendChild(bowlOption);
   });
 
+  battingSelect.selectedIndex = 0;
   bowlingSelect.selectedIndex = 1;
-}
 
-// Display the innings score and overs.
-function renderLiveScore() {
-  const heading = document.getElementById("liveScoreHeading");
-  const overs = document.getElementById("liveOversDisplay");
+  function updatePlayerDropdowns() {
+    const battingTeam = battingSelect.value;
+    const bowlingTeam = bowlingSelect.value;
 
-  if (heading) {
-    heading.textContent = `${liveTotalRuns}/${liveWickets}`;
+    const battingPlayers = getLiveSquadPlayers(battingTeam);
+    const bowlingPlayers = getLiveSquadPlayers(bowlingTeam);
+
+    fillLivePlayerSelect(
+      "liveStriker",
+      battingPlayers,
+      battingPlayers.length ? "Select striker" : "No squad players found"
+    );
+
+    fillLivePlayerSelect(
+      "liveNonStriker",
+      battingPlayers,
+      battingPlayers.length ? "Select non-striker" : "No squad players found"
+    );
+
+    fillLivePlayerSelect(
+      "liveBowler",
+      bowlingPlayers,
+      bowlingPlayers.length ? "Select bowler" : "No squad players found"
+    );
   }
 
-  if (overs) {
-    overs.textContent =
-      `Overs: ${Math.floor(liveLegalBalls / 6)}.${liveLegalBalls % 6}`;
-  }
+  battingSelect.onchange = updatePlayerDropdowns;
+
+  bowlingSelect.onchange = updatePlayerDropdowns;
+
+  updatePlayerDropdowns();
 }
 
 // Start a new innings or resume an existing innings.
