@@ -1216,7 +1216,7 @@ async function saveTeam(i) {
 }
 
   
-  async function deleteTeam(i) {
+ async function deleteTeam(i) {
   const team = teams[i];
 
   if (!team) {
@@ -1247,20 +1247,20 @@ async function saveTeam(i) {
           "Check your Supabase DELETE policy and admin login."
         );
       }
-      
-} catch (error) {
-  console.error("Supabase deletion error:", error);
+    } catch (error) {
+      console.error("Supabase deletion error:", error);
 
-  alert(
-    "Deletion failed.\n\n" +
-    "Message: " + (error.message || "Unknown error") +
-    "\nCode: " + (error.code || "Not provided") +
-    "\nDetails: " + (error.details || "None") +
-    "\nHint: " + (error.hint || "None")
-  );
+      alert(
+        "Deletion failed.\n\n" +
+        "Message: " + (error.message || "Unknown error") +
+        "\nCode: " + (error.code || "Not provided") +
+        "\nDetails: " + (error.details || "None") +
+        "\nHint: " + (error.hint || "None")
+      );
 
-  return;
-}
+      return;
+    }
+  }
 
   // Remove from the local tournament list after online deletion succeeds.
   teams.splice(i, 1);
