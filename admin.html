@@ -684,14 +684,24 @@ async function syncMatchesToSupabase() {
   }
 }
 
-function persist() {
+function persist(options = {}) {
   const teamsSaved = safeSetItem("teams", JSON.stringify(teams));
   const matchesSaved = safeSetItem("matches", JSON.stringify(matches));
 
   syncPublicFixtures();
 
-  // Save match changes to Supabase in the background.
-  syncMatchesToSupabase();
+  // Skip the background database save when the caller will
+  // explicitly wait for syncMatchesToSupabase().
+  if (!options.skipSupabase) {
+    syncMatchesToSupabase().catch(error => {
+      console.error("Background Supabase sync failed:", error);
+      showNotice(
+        "Could not sync tournament matches to Supabase: " +
+        (error.message || "Unknown error"),
+        true
+      );
+    });
+  }
 
   return teamsSaved && matchesSaved && storageAvailable;
 }
@@ -1668,26 +1678,49 @@ async function saveScore() {
     x.id === document.getElementById("matchSelect").value
   );
 
-  if (!m) return alert("Select a match.");
+  const scoreMsg = document.getElementById("scoreMsg");
+  const saveButton = document.querySelector(
+    '#scoreSection button[onclick="saveScore()"]'
+  );
+
+  if (!m) {
+    alert("Select a match.");
+    return;
+  }
 
   const a = Number(document.getElementById("scoreA").value);
   const b = Number(document.getElementById("scoreB").value);
 
-  const ballsA = oversToBalls(document.getElementById("oversA").value);
-  const ballsB = oversToBalls(document.getElementById("oversB").value);
+  const ballsA = oversToBalls(
+    document.getElementById("oversA").value
+  );
 
-  if (!Number.isInteger(a) || a < 0 || !Number.isInteger(b) || b < 0) {
-    return alert("Enter valid scores.");
+  const ballsB = oversToBalls(
+    document.getElementById("oversB").value
+  );
+
+  if (!Number.isInteger(a) || a < 0 ||
+      !Number.isInteger(b) || b < 0) {
+    alert("Enter valid scores.");
+    return;
   }
 
   if (!Number.isFinite(ballsA) || ballsA <= 0 ||
       !Number.isFinite(ballsB) || ballsB <= 0) {
-    return alert("Enter valid overs, such as 5.4 or 6.0.");
+    alert("Enter valid overs, such as 5.4 or 6.0.");
+    return;
   }
 
   if (a === b) {
-    return alert("A knockout match needs a winner. Enter the final result after any tie-breaker.");
+    alert(
+      "A knockout match needs a winner. Enter the final result after any tie-breaker."
+    );
+    return;
   }
+
+  // Keep a copy so we can restore the previous result if saving fails.
+  const previousMatch = { ...m };
+  const previousWinner = m.winner;
 
   m.scoreA = a;
   m.scoreB = b;
@@ -1698,19 +1731,67 @@ async function saveScore() {
   m.winner = a > b ? m.teamA : m.teamB;
   m.status = "completed";
 
-  persist();
-refresh();
+  const winnerName = m.winner;
 
-try {
-  await syncMatchesToSupabase();
+  if (saveButton) saveButton.disabled = true;
+  if (scoreMsg) scoreMsg.textContent = "Saving result to Supabase...";
+  showNotice("", false);
 
-  alert("Result saved successfully. Winner: " + winner);
-} catch (error) {
-  alert(
-    "WARNING: The result is saved locally, but Supabase could not confirm the save.\n\n" +
-    (error.message || "Unknown error") +
-    "\n\nCheck your admin login and Supabase permissions."
-  );
+  try {
+    // Save locally without starting a second, background Supabase request.
+    const localSaveSucceeded = persist({ skipSupabase: true });
+
+    if (!localSaveSucceeded) {
+      throw new Error(
+        "Browser storage could not confirm the local save."
+      );
+    }
+
+    // Wait for Supabase to confirm the match upsert.
+    await syncMatchesToSupabase();
+
+    refresh();
+
+    if (scoreMsg) {
+      scoreMsg.textContent =
+        "Result saved successfully. Winner: " + winnerName;
+    }
+
+    showNotice(
+      "Match result saved to Supabase. The public points table can now retrieve the updated result."
+    );
+
+  } catch (error) {
+    console.error("Saving match result failed:", error);
+
+    // Restore the previous in-memory result.
+    Object.assign(m, previousMatch);
+
+    // Restore local match data as well.
+    safeSetItem("matches", JSON.stringify(matches));
+    syncPublicFixtures();
+
+    refresh();
+
+    if (scoreMsg) {
+      scoreMsg.textContent =
+        "Save failed: " + (error.message || "Unknown error");
+    }
+
+    showNotice(
+      "The result was not confirmed by Supabase. Check the error below before trying again.",
+      true
+    );
+
+    alert(
+      "Could not confirm the match result in Supabase.\n\n" +
+      (error.message || "Unknown error") +
+      "\n\nPlease check your admin login and Supabase permissions."
+    );
+
+  } finally {
+    if (saveButton) saveButton.disabled = false;
+  }
 }
 
 /* CUSTOM MATCH */
