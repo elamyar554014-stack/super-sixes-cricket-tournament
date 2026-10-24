@@ -2172,42 +2172,38 @@ function populateLiveMatchSelect() {
 // Populate batting and bowling team dropdowns.
 
 // Get player names from the selected team's squad.
+
+  
 function getLiveSquadPlayers(teamName) {
-  const team = teams.find(
-    item => item &&
-      String(item.teamName || item.name || item.team_name).trim() ===
-      String(teamName).trim()
-  );
+  const selectedTeamName = String(teamName || "").trim();
 
-  if (!team) return [];
-
-  let squad = team.players || team.squad || team.squad_members || [];
-
-  if (typeof squad === "string") {
-    try {
-      squad = JSON.parse(squad);
-    } catch {
-      squad = squad.split(/\r?\n|,/);
-    }
+  if (!selectedTeamName || !Array.isArray(teams)) {
+    return [];
   }
 
-  if (!Array.isArray(squad)) {
-    squad = squad ? [squad] : [];
+  const team = teams.find(item =>
+    item &&
+    String(item.teamName || "").trim().toLowerCase() ===
+    selectedTeamName.toLowerCase()
+  );
+
+  if (!team || !Array.isArray(team.players)) {
+    console.warn("Squad not found for team:", selectedTeamName, team);
+    return [];
   }
 
   return [...new Set(
-    squad.map(player => {
-      if (player && typeof player === "object") {
-        return String(
-          player.name ||
-          player.player_name ||
-          player.full_name ||
-          ""
-        ).trim();
-      }
+    team.players
+      .map(player => {
+        if (player && typeof player === "object") {
+          return String(
+            player.name || player.player_name || ""
+          ).trim();
+        }
 
-      return String(player ?? "").trim();
-    }).filter(Boolean)
+        return String(player ?? "").trim();
+      })
+      .filter(Boolean)
   )];
 }
 
