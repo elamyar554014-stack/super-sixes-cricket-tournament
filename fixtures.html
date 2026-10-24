@@ -680,9 +680,29 @@ async function loadFixtures() {
 
 loadFixtures();
 
-// Refresh the public fixtures page when the Admin Panel saves changes.
+/* Automatically refresh when Supabase match data changes. */
+const fixturesRealtime = supabaseClient
+  .channel("fixtures-live-updates")
+  .on(
+    "postgres_changes",
+    {
+      event: "*",
+      schema: "public",
+      table: "tournament_matches"
+    },
+    () => loadFixtures()
+  )
+  .subscribe(status => {
+    console.log("Fixtures Realtime:", status);
+  });
+
+/* Refresh when another browser tab changes local storage. */
 window.addEventListener("storage", event => {
   if (event.key === "fixtures") loadFixtures();
+});
+
+/* Refresh when the page regains focus. */
+window.addEventListener("focus", loadFixtures);
 });
 </script>
 
