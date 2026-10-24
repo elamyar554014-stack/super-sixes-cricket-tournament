@@ -1364,6 +1364,10 @@ async function saveTeam(i) {
   renderTeams();
   renderFixtures();
   renderMatchSelect();
+
+  populateLiveMatchSelect();
+  updateLiveTeamOptions();
+
   renderCustomOptions();
   renderResults();
 
