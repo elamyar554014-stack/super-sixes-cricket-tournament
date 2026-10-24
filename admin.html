@@ -2110,6 +2110,452 @@ window.addEventListener("unhandledrejection", function (event) {
   showNotice("Admin Panel encountered an unexpected error. Open F12 → Console for details.", true);
 });
 
+  // ==========================================
+// SUPER SIXES — LIVE SCORING
+// ==========================================
+
+let liveInningsId = null;
+let liveMatchId = null;
+let liveInningsNumber = 1;
+let liveLegalBalls = 0;
+let liveTotalRuns = 0;
+let liveWickets = 0;
+
+// Display messages in the Live Scoring panel.
+function showLiveScoringMessage(message, isError = false) {
+  const el = document.getElementById("liveScoringMessage");
+  if (!el) return;
+
+  el.textContent = message;
+  el.style.color = isError ? "#dc2626" : "#15803d";
+}
+
+// Load tournament matches into the Live Scoring dropdown.
+function populateLiveMatchSelect() {
+  const select = document.getElementById("liveMatchSelect");
+  if (!select) return;
+
+  const previousValue = select.value;
+  select.innerHTML = '<option value="">Select a match</option>';
+
+  (Array.isArray(matches) ? matches : []).forEach(match => {
+    if (!match || !match.id || !match.teamA || !match.teamB) return;
+
+    const option = document.createElement("option");
+    option.value = String(match.id);
+    option.textContent = `${match.teamA} vs ${match.teamB}`;
+    select.appendChild(option);
+  });
+
+  if ([...select.options].some(option => option.value === previousValue)) {
+    select.value = previousValue;
+  }
+}
+
+// Populate batting and bowling team dropdowns.
+function updateLiveTeamOptions() {
+  const matchSelect = document.getElementById("liveMatchSelect");
+  const battingSelect = document.getElementById("liveBattingTeam");
+  const bowlingSelect = document.getElementById("liveBowlingTeam");
+
+  if (!matchSelect || !battingSelect || !bowlingSelect) return;
+
+  const match = matches.find(
+    item => String(item.id) === String(matchSelect.value)
+  );
+
+  battingSelect.innerHTML = "";
+  bowlingSelect.innerHTML = "";
+
+  if (!match) return;
+
+  [match.teamA, match.teamB].forEach(team => {
+    const batOption = document.createElement("option");
+    batOption.value = team;
+    batOption.textContent = team;
+    battingSelect.appendChild(batOption);
+
+    const bowlOption = document.createElement("option");
+    bowlOption.value = team;
+    bowlOption.textContent = team;
+    bowlingSelect.appendChild(bowlOption);
+  });
+
+  bowlingSelect.selectedIndex = 1;
+}
+
+// Display the innings score and overs.
+function renderLiveScore() {
+  const heading = document.getElementById("liveScoreHeading");
+  const overs = document.getElementById("liveOversDisplay");
+
+  if (heading) {
+    heading.textContent = `${liveTotalRuns}/${liveWickets}`;
+  }
+
+  if (overs) {
+    overs.textContent =
+      `Overs: ${Math.floor(liveLegalBalls / 6)}.${liveLegalBalls % 6}`;
+  }
+}
+
+// Start a new innings or resume an existing innings.
+async function startLiveInnings() {
+  try {
+    const matchId = document.getElementById("liveMatchSelect")?.value;
+    const battingTeam = document.getElementById("liveBattingTeam")?.value;
+    const bowlingTeam = document.getElementById("liveBowlingTeam")?.value;
+
+    const striker = document.getElementById("liveStriker")?.value.trim();
+    const nonStriker = document.getElementById("liveNonStriker")?.value.trim();
+    const bowler = document.getElementById("liveBowler")?.value.trim();
+
+    if (!matchId || !battingTeam || !bowlingTeam) {
+      showLiveScoringMessage("Please select a match and both teams.", true);
+      return;
+    }
+
+    if (battingTeam === bowlingTeam) {
+      showLiveScoringMessage("Batting and bowling teams must be different.", true);
+      return;
+    }
+
+    if (!striker || !nonStriker || !bowler) {
+      showLiveScoringMessage(
+        "Enter the striker, non-striker, and bowler before starting.",
+        true
+      );
+      return;
+    }
+
+    showLiveScoringMessage("Starting innings...");
+
+    const { data: existing, error: findError } = await supabaseClient
+      .from("match_innings")
+      .select("*")
+      .eq("match_id", String(matchId))
+      .eq("innings_number", 1)
+      .maybeSingle();
+
+    if (findError) throw findError;
+
+    let innings = existing;
+
+    if (!innings) {
+      const { data, error } = await supabaseClient
+        .from("match_innings")
+        .insert({
+          match_id: String(matchId),
+          innings_number: 1,
+          batting_team: battingTeam,
+          bowling_team: bowlingTeam,
+          total_runs: 0,
+          wickets: 0,
+          legal_balls: 0,
+          status: "in_progress"
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      innings = data;
+    } else if (
+      innings.batting_team !== battingTeam ||
+      innings.bowling_team !== bowlingTeam
+    ) {
+      showLiveScoringMessage(
+        "An innings already exists for this match with different teams. Select the original teams to resume it.",
+        true
+      );
+      return;
+    }
+
+    liveInningsId = innings.id;
+    liveMatchId = String(matchId);
+    liveInningsNumber = 1;
+
+    document.getElementById("nextStriker").value = striker;
+    document.getElementById("nextNonStriker").value = nonStriker;
+    document.getElementById("nextBowler").value = bowler;
+
+    await reloadLiveDeliveries();
+
+    showLiveScoringMessage(
+      existing ? "Existing innings loaded." : "Innings started successfully."
+    );
+  } catch (error) {
+    console.error("Start live innings error:", error);
+    showLiveScoringMessage(
+      error.message || "Could not start the innings.",
+      true
+    );
+  }
+}
+
+// Load saved deliveries and recalculate the innings score.
+async function reloadLiveDeliveries() {
+  if (!liveInningsId) return;
+
+  const { data, error } = await supabaseClient
+    .from("match_deliveries")
+    .select("*")
+    .eq("innings_id", liveInningsId)
+    .order("ball_number", { ascending: true });
+
+  if (error) throw error;
+
+  const deliveries = data || [];
+
+  liveTotalRuns = deliveries.reduce(
+    (sum, delivery) => sum + Number(delivery.total_runs || 0),
+    0
+  );
+
+  liveWickets = deliveries.reduce(
+    (sum, delivery) => sum + (delivery.wicket ? 1 : 0),
+    0
+  );
+
+  liveLegalBalls = deliveries.reduce((sum, delivery) => {
+    return sum + (
+      delivery.extra_type === "wide" ||
+      delivery.extra_type === "no_ball"
+        ? 0
+        : 1
+    );
+  }, 0);
+
+  const { error: updateError } = await supabaseClient
+    .from("match_innings")
+    .update({
+      total_runs: liveTotalRuns,
+      wickets: liveWickets,
+      legal_balls: liveLegalBalls,
+      status: "in_progress",
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", liveInningsId);
+
+  if (updateError) throw updateError;
+
+  renderLiveScore();
+  renderLiveBallHistory(deliveries);
+}
+
+// Display the latest deliveries.
+function renderLiveBallHistory(deliveries) {
+  const container = document.getElementById("liveBallHistory");
+  if (!container) return;
+
+  if (!deliveries.length) {
+    container.textContent = "No deliveries recorded yet.";
+    return;
+  }
+
+  container.innerHTML = deliveries.slice(-12).reverse().map(delivery => {
+    let description;
+
+    if (delivery.wicket) {
+      description = "WICKET";
+    } else if (delivery.extra_type) {
+      description = delivery.extra_type.replace("_", " ");
+    } else {
+      description = `${delivery.runs_batter || 0} run(s)`;
+    }
+
+    return `<p>${escapeHTML(String(description))} — Total: ${Number(delivery.total_runs || 0)}</p>`;
+  }).join("");
+}
+
+// Save runs, extras, and wickets to Supabase.
+async function recordLiveDelivery(action, value) {
+  try {
+    if (!liveInningsId) {
+      showLiveScoringMessage("Start an innings first.", true);
+      return;
+    }
+
+    const striker = document.getElementById("nextStriker")?.value.trim();
+    const nonStriker = document.getElementById("nextNonStriker")?.value.trim();
+    const bowler = document.getElementById("nextBowler")?.value.trim();
+
+    if (!striker || !nonStriker || !bowler) {
+      showLiveScoringMessage(
+        "Enter the striker, non-striker, and bowler.",
+        true
+      );
+      return;
+    }
+
+    const { data: previousBalls, error: previousError } = await supabaseClient
+      .from("match_deliveries")
+      .select("ball_number")
+      .eq("innings_id", liveInningsId)
+      .order("ball_number", { ascending: false })
+      .limit(1);
+
+    if (previousError) throw previousError;
+
+    const ballNumber = previousBalls?.length
+      ? Number(previousBalls[0].ball_number) + 1
+      : 1;
+
+    let batterRuns = 0;
+    let extras = 0;
+    let extraType = null;
+    let wicket = false;
+    let dismissalType = null;
+    let dismissedPlayer = null;
+
+    if (action === "runs") {
+      batterRuns = Number(value);
+
+      if (![0, 1, 2, 3, 4, 6].includes(batterRuns)) {
+        throw new Error("Invalid run value.");
+      }
+    } else if (action === "extra") {
+      if (!["wide", "no_ball", "bye", "leg_bye"].includes(value)) {
+        throw new Error("Invalid extra type.");
+      }
+
+      extraType = value;
+      extras = 1;
+    } else if (action === "wicket") {
+      wicket = true;
+      dismissalType = "wicket";
+      dismissedPlayer = striker;
+    } else {
+      throw new Error("Unknown delivery action.");
+    }
+
+    const totalDeliveryRuns = batterRuns + extras;
+
+    const overNumber = Math.floor(liveLegalBalls / 6);
+    const ballInOver = (liveLegalBalls % 6) + 1;
+
+    const { error: insertError } = await supabaseClient
+      .from("match_deliveries")
+      .insert({
+        innings_id: liveInningsId,
+        ball_number: ballNumber,
+        over_number: overNumber,
+        ball_in_over: ballInOver,
+        batter: striker,
+        bowler: bowler,
+        runs_batter: batterRuns,
+        extras: extras,
+        extra_type: extraType,
+        total_runs: totalDeliveryRuns,
+        wicket: wicket,
+        dismissal_type: dismissalType,
+        dismissed_player: dismissedPlayer
+      });
+
+    if (insertError) throw insertError;
+
+    // Switch strike when the completed delivery's total is odd.
+    if (totalDeliveryRuns % 2 === 1) {
+      document.getElementById("nextStriker").value = nonStriker;
+      document.getElementById("nextNonStriker").value = striker;
+    }
+
+    await reloadLiveDeliveries();
+
+    showLiveScoringMessage("Delivery saved successfully.");
+  } catch (error) {
+    console.error("Record live delivery error:", error);
+    showLiveScoringMessage(
+      error.message || "Could not save the delivery.",
+      true
+    );
+  }
+}
+
+
+  // Undo the most recent delivery.
+async function undoLastLiveDelivery() {
+  try {
+    if (!liveInningsId) {
+      showLiveScoringMessage("Start an innings first.", true);
+      return;
+    }
+
+    const { data, error: findError } = await supabaseClient
+      .from("match_deliveries")
+      .select("id")
+      .eq("innings_id", liveInningsId)
+      .order("ball_number", { ascending: false })
+      .limit(1);
+
+    if (findError) throw findError;
+
+    if (!data || data.length === 0) {
+      showLiveScoringMessage("There are no deliveries to undo.");
+      return;
+    }
+
+    const { error: deleteError } = await supabaseClient
+      .from("match_deliveries")
+      .delete()
+      .eq("id", data[0].id);
+
+    if (deleteError) throw deleteError;
+
+    await reloadLiveDeliveries();
+
+    showLiveScoringMessage("Last delivery undone.");
+  } catch (error) {
+    console.error("Undo live delivery error:", error);
+
+    showLiveScoringMessage(
+      error.message || "Could not undo the delivery.",
+      true
+    );
+  }
+}
+
+// Connect the Live Scoring buttons.
+function bindLiveScoringUI() {
+  const matchSelect = document.getElementById("liveMatchSelect");
+
+  if (!matchSelect) {
+    console.error("Live Scoring HTML section was not found.");
+    return;
+  }
+
+  // Load matches and team options.
+  populateLiveMatchSelect();
+  updateLiveTeamOptions();
+
+  matchSelect.addEventListener("change", updateLiveTeamOptions);
+
+  document.getElementById("startLiveInningsBtn")
+    ?.addEventListener("click", startLiveInnings);
+
+  document.querySelectorAll('[data-live-action="runs"]').forEach(button => {
+    button.addEventListener("click", () => {
+      recordLiveDelivery("runs", button.dataset.runs);
+    });
+  });
+
+  document.querySelectorAll('[data-live-action="extra"]').forEach(button => {
+    button.addEventListener("click", () => {
+      recordLiveDelivery("extra", button.dataset.extra);
+    });
+  });
+
+  document.getElementById("liveWicketBtn")
+    ?.addEventListener("click", () => {
+      recordLiveDelivery("wicket");
+    });
+
+  document.getElementById("undoLiveBallBtn")
+    ?.addEventListener("click", undoLastLiveDelivery);
+}
+
+// Initialize Live Scoring.
+bindLiveScoringUI();
+
 </script>
 </body>
 </html>
