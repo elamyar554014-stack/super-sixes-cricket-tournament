@@ -680,7 +680,12 @@ function syncPublicFixtures() {
 function persist() {
   const teamsSaved = safeSetItem("teams", JSON.stringify(teams));
   const matchesSaved = safeSetItem("matches", JSON.stringify(matches));
+
   syncPublicFixtures();
+
+  // Save match changes to Supabase in the background.
+  syncMatchesToSupabase();
+
   return teamsSaved && matchesSaved && storageAvailable;
 }
 
@@ -1154,7 +1159,6 @@ function renderTeams() {
   `).join("");
 }
 
-javascript
   
 async function saveTeam(i) {
   const team = teams[i];
