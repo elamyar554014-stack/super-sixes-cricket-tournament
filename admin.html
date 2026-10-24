@@ -872,83 +872,160 @@ async function login() {
   }
 }
 
-  async function loadSupabaseRegistrations() {
-const message = document.getElementById("supabaseRegistrationMessage");
-const container = document.getElementById("supabaseRegistrationsList");
+async function loadSupabaseRegistrations() {
+  const message = document.getElementById("supabaseRegistrationMessage");
+  const container = document.getElementById("supabaseRegistrationsList");
 
-if (!message || !container) {
-console.error("Supabase registrations section not found.");
-return;
-}
-
-message.textContent = "Loading registrations...";
-container.innerHTML = "";
-
-try {
-const { data, error } = await supabaseClient
-.from("team_registrations")
-.select("id, team_name, captain_name, vice_captain, squad, created_at, phone")
-.order("created_at", { ascending: false });
-  
-if (error) throw error;
-
-if (!data || data.length === 0) {
-  container.innerHTML = '<p class="muted">No registrations found yet.</p>';
-  message.textContent = "No registrations found.";
-  return;
-}
-
-container.innerHTML = data.map(team => {
-  let players = team.squad;
-  if (typeof players === "string") {
-    try {
-      players = JSON.parse(players);
-    } catch {
-      players = players.split(/\r?\n|,/);
-    }
+  if (!message || !container) {
+    console.error("Supabase registrations section not found.");
+    return;
   }
 
-  if (!Array.isArray(players)) {
-    players = players ? [players] : [];
-  }
+  message.textContent = "Loading registrations...";
+  container.innerHTML = "";
 
-  const playerList = players.map(player => {
-    if (player && typeof player === "object") {
-      return escapeHTML(
-        player.name || player.player_name || JSON.stringify(player)
+  try {
+    const { data, error } = await supabaseClient
+      .from("team_registrations")
+      .select("id, team_name, captain_name, vice_captain, squad, created_at, phone")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    const registrations = data || [];
+
+    // Convert database registrations into editable tournament teams.
+    const onlineTeams = registrations.map(team => {
+      let players = team.squad;
+
+      if (typeof players === "string") {
+        try {
+          players = JSON.parse(players);
+        } catch {
+          players = players.split(/\r?\n|,/);
+        }
+      }
+
+      if (!Array.isArray(players)) {
+        players = players ? [players] : [];
+      }
+
+      players = players.map(player => {
+        if (player && typeof player === "object") {
+          return String(
+            player.name ||
+            player.player_name ||
+            ""
+          ).trim();
+        }
+
+        return String(player ?? "").trim();
+      }).filter(Boolean);
+
+      return {
+        id: team.id,
+        source: "supabase",
+        teamName: team.team_name || "Unnamed Team",
+        captain: team.captain_name || "",
+        viceCaptain: team.vice_captain || "",
+        contact: team.phone || "",
+        players
+      };
+    });
+
+    // Preserve locally created teams and replace previously loaded online teams.
+    const localTeams = teams.filter(
+      team => !team || team.source !== "supabase"
+    );
+
+    const existingOnlineIds = new Set(
+      onlineTeams.map(team => String(team.id))
+    );
+
+    const updatedOnlineTeams = onlineTeams.map(onlineTeam => {
+      const existing = teams.find(
+        team =>
+          team &&
+          team.source === "supabase" &&
+          String(team.id) === String(onlineTeam.id)
       );
+
+      return existing
+        ? { ...existing, ...onlineTeam }
+        : onlineTeam;
+    });
+
+    teams = [
+      ...localTeams,
+      ...updatedOnlineTeams
+    ];
+
+    // Display registration details in the Received Team Responses section.
+    if (!registrations.length) {
+      container.innerHTML =
+        '<p class="muted">No registrations found yet.</p>';
+    } else {
+      container.innerHTML = registrations.map(team => {
+        let players = team.squad;
+
+        if (typeof players === "string") {
+          try {
+            players = JSON.parse(players);
+          } catch {
+            players = players.split(/\r?\n|,/);
+          }
+        }
+
+        if (!Array.isArray(players)) {
+          players = players ? [players] : [];
+        }
+
+        const playerList = players.map(player => {
+          if (player && typeof player === "object") {
+            player = player.name || player.player_name || "";
+          }
+
+          return escapeHTML(String(player ?? ""));
+        }).filter(Boolean).join("<br>");
+
+        const registrationDate = team.created_at
+          ? new Date(team.created_at).toLocaleString()
+          : "Not available";
+
+        return `
+          <div class="card">
+            <h3>${escapeHTML(team.team_name || "Unnamed Team")}</h3>
+            <p><strong>Captain:</strong> ${escapeHTML(team.captain_name || "Not provided")}</p>
+            <p><strong>Vice-Captain:</strong> ${escapeHTML(team.vice_captain || "Not provided")}</p>
+            <p><strong>Contact:</strong> ${escapeHTML(team.phone || "Not provided")}</p>
+            <p><strong>Squad Members:</strong></p>
+            <div class="muted">${playerList || "No squad details provided"}</div>
+            <p class="muted"><strong>Registered:</strong> ${escapeHTML(registrationDate)}</p>
+          </div>
+        `;
+      }).join("");
     }
-    return escapeHTML(String(player ?? ""));
-  }).filter(Boolean).join("<br>");
 
-  const registrationDate = team.created_at
-    ? new Date(team.created_at).toLocaleString()
-    : "Not available";
+    persist();
 
-  return `
-    <div class="card">
-      <h3>${escapeHTML(team.team_name || "Unnamed Team")}</h3>
-      <p><strong>Captain:</strong> ${escapeHTML(team.captain_name || "Not provided")}</p>
-      <p><strong>Vice-Captain:</strong> ${escapeHTML(team.vice_captain || "Not provided")}</p>
-      <p><strong>Contact:</strong> ${escapeHTML(team.phone || "Not provided")}</p>
-      <p><strong>Squad Members:</strong></p>
-      <div class="muted">${playerList || "No squad details provided"}</div>
-      <p class="muted"><strong>Registered:</strong> ${escapeHTML(registrationDate)}</p>
-    </div>
-  `;
-}).join("");
+    // Refresh the editable team list and other existing admin sections.
+    renderTeams();
 
-message.textContent = `${data.length} registration(s) loaded successfully.`;
+    message.textContent =
+      `${registrations.length} online registration(s) loaded. ` +
+      "You can edit these teams in Team Management.";
 
-} catch (error) {
-console.error("Supabase registrations error:", error);
+  } catch (error) {
+    console.error("Supabase registrations error:", error);
 
-container.innerHTML =
-'<p class="muted">Could not load registrations. Check the browser console for details.</p>';
+    container.innerHTML =
+      '<p class="muted">Could not load registrations. Check the browser console for details.</p>';
 
-message.textContent = error.message || "Failed to load registrations.";
+    message.textContent =
+      error.message || "Failed to load registrations.";
+  }
 }
-}
+
 document.getElementById("password").addEventListener("keydown", e => {
   if (e.key === "Enter") login();
 });
