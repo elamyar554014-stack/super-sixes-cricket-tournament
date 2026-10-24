@@ -1529,32 +1529,57 @@ async function deleteFixture(id) {
   if (!confirm("Delete this fixture permanently?")) return;
 
   try {
-    // Delete the fixture from Supabase first.
-    const { data: sessionData } = await supabaseClient.auth.getSession();
+    // Confirm that the admin is logged in.
+    const { data: sessionData, error: sessionError } =
+      await supabaseClient.auth.getSession();
 
-    if (sessionData?.session) {
-      const { error } = await supabaseClient
-        .from("tournament_matches")
-        .delete()
-        .eq("id", String(id));
+    if (sessionError) throw sessionError;
 
-      if (error) throw error;
-    } else {
-      alert("Please log in to the Admin Panel before deleting online fixtures.");
+    if (!sessionData?.session) {
+      alert("Please log in to the Admin Panel before deleting fixtures.");
       return;
     }
 
-    // Remove the fixture from the local match list.
-    matches = matches.filter(m => String(m.id) !== String(id));
+    // Delete the fixture from the online database.
+    const { data, error } = await supabaseClient
+      .from("tournament_matches")
+      .delete()
+      .eq("id", String(id))
+      .select("id");
 
-    // Save and refresh the Admin Panel.
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      alert(
+        "The fixture was not deleted from Supabase. " +
+        "Check the fixture ID and database permissions."
+      );
+      return;
+    }
+
+    // Remove the deleted fixture from the current match list.
+    matches = matches.filter(
+      match => String(match.id) !== String(id)
+    );
+
+    // Save the updated list before refreshing the Admin Panel.
     persist();
+
+    // Refresh the Admin Panel.
     refresh();
 
-    alert("Fixture deleted successfully.");
+    alert(
+      "Fixture deleted successfully. " +
+      "The public points table should recalculate from the remaining results."
+    );
+
   } catch (error) {
     console.error("Fixture deletion failed:", error);
-    alert("Could not delete fixture online: " + error.message);
+
+    alert(
+      "Could not delete the fixture:\n" +
+      (error.message || "Unknown error")
+    );
   }
 }
 
