@@ -169,6 +169,7 @@ td {
   .container { margin-top:28px; }
 }
 </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
@@ -201,6 +202,14 @@ td {
 </main>
 
 <script>
+  const SUPABASE_URL = "https://slkqiklzpoaalrvjfdew.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_xVobjT2a_3S3N__5gsR65Q_M1FBFpcu";
+
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+  
 function readData(key, fallback) {
   try {
     return JSON.parse(localStorage.getItem(key)) || fallback;
@@ -219,170 +228,211 @@ function escapeHTML(value) {
   })[c]);
 }
 
-function getStandings() {
-  const teams = readData("teams", []);
-  const matches = readData("matches", []);
+async function getStandings() {
+  const [{ data: teams, error: teamsError }, { data: matches, error: matchesError }] =
+    await Promise.all([
+      supabaseClient
+        .from("public_registered_teams")
+        .select("team_name"),
+      supabaseClient
+        .from("tournament_matches")
+        .select("*")
+    ]);
+
+  if (teamsError) throw teamsError;
+  if (matchesError) throw matchesError;
+
   const stats = {};
 
   function ensure(name) {
+    if (!name || name === "BYE" || name === "TBA") return null;
+
     if (!stats[name]) {
       stats[name] = {
         name,
-        matches:0,
-        wins:0,
-        losses:0,
-        points:0,
-        runsFor:0,
-        runsAgainst:0,
-        ballsFor:0,
-        ballsAgainst:0
+        matches: 0,
+        wins: 0,
+        losses: 0,
+        points: 0,
+        runsFor: 0,
+        runsAgainst: 0,
+        ballsFor: 0,
+        ballsAgainst: 0
       };
     }
+
     return stats[name];
   }
 
-  teams.forEach(t => ensure(t.teamName));
+  (teams || []).forEach(t => ensure(t.team_name));
 
-  matches.filter(m => m.status === "completed").forEach(m => {
-    const a = ensure(m.teamA);
-    const b = ensure(m.teamB);
+  (matches || [])
+    .filter(m => m.status === "completed" && m.team_a && m.team_b)
+    .forEach(m => {
+      const a = ensure(m.team_a);
+      const b = ensure(m.team_b);
 
-    a.matches++;
-    b.matches++;
+      if (!a || !b) return;
 
-    a.runsFor += Number(m.scoreA) || 0;
-    a.runsAgainst += Number(m.scoreB) || 0;
+      a.matches++;
+      b.matches++;
 
-    b.runsFor += Number(m.scoreB) || 0;
-    b.runsAgainst += Number(m.scoreA) || 0;
+      a.runsFor += Number(m.score_a) || 0;
+      a.runsAgainst += Number(m.score_b) || 0;
 
-    const ballsA = Number(m.oversABalls) ||
-      Math.round((Number(m.oversA) || 0) * 6);
+      b.runsFor += Number(m.score_b) || 0;
+      b.runsAgainst += Number(m.score_a) || 0;
 
-    const ballsB = Number(m.oversBBalls) ||
-      Math.round((Number(m.oversB) || 0) * 6);
+      const ballsA = Number(m.overs_a_balls) ||
+        Math.round((Number(m.overs_a) || 0) * 6);
 
-    a.ballsFor += ballsA;
-    a.ballsAgainst += ballsB;
+      const ballsB = Number(m.overs_b_balls) ||
+        Math.round((Number(m.overs_b) || 0) * 6);
 
-    b.ballsFor += ballsB;
-    b.ballsAgainst += ballsA;
+      a.ballsFor += ballsA;
+      a.ballsAgainst += ballsB;
 
-    if (m.winner === m.teamA) {
-      a.wins++;
-      b.losses++;
-      a.points += 2;
-    } else if (m.winner === m.teamB) {
-      b.wins++;
-      a.losses++;
-      b.points += 2;
-    }
-  });
+      b.ballsFor += ballsB;
+      b.ballsAgainst += ballsA;
 
-  return Object.values(stats).map(t => ({
-    ...t,
-    nrr:
-      (t.ballsFor ? t.runsFor / (t.ballsFor / 6) : 0) -
-      (t.ballsAgainst ? t.runsAgainst / (t.ballsAgainst / 6) : 0)
-  })).sort((a,b) =>
-    b.points - a.points || b.nrr - a.nrr
-  );
-}
+      if (m.winner === m.team_a) {
+        a.wins++;
+        b.losses++;
+        a.points += 2;
+      } else if (m.winner === m.team_b) {
+        b.wins++;
+        a.losses++;
+        b.points += 2;
+      }
+    });
 
-function renderPointsTable() {
-  const rows = getStandings();
-
-  document.getElementById("tableNote").textContent =
-    rows.length + " TEAMS • SORTED BY POINTS";
-
+  return Object.values(stats)
+    .map(t => ({
+      ...t,
+      nrr:
+        (t.ballsFor ? t.runsFor / (t.ballsFor / 6) : 0) -
+        (t.ballsAgainst ? t.runsAgainst / (t.ballsAgainst / 6) : 0)
+    }))
+    .sort((a, b) => b.points - a.points || b.nrr - a.nrr);
+}async function renderPointsTable() {
   const area = document.getElementById("tableArea");
+  const note = document.getElementById("tableNote");
 
-  if (!rows.length) {
+  try {
+    const rows = await getStandings();
+
+    note.textContent = rows.length + " TEAMS • SORTED BY POINTS";
+
+    if (!rows.length) {
+      area.innerHTML = `
+        <div class="empty">
+          No teams registered yet.<br>
+          Register teams in the Admin Panel to begin.
+        </div>`;
+      return;
+    }
+
+    area.innerHTML = `
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Team</th>
+              <th>M</th>
+              <th>W</th>
+              <th>L</th>
+              <th>Pts</th>
+              <th>NRR</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map((t, i) => `
+              <tr>
+                <td>
+                  <span class="rank">${i + 1}</span>
+                  <span class="team-name">${escapeHTML(t.name)}</span>
+                </td>
+                <td>${t.matches}</td>
+                <td>${t.wins}</td>
+                <td>${t.losses}</td>
+                <td class="points">${t.points}</td>
+                <td class="${t.nrr > 0 ? "positive" : t.nrr < 0 ? "negative" : ""}">
+                  ${t.nrr > 0 ? "+" : ""}${t.nrr.toFixed(2)}
+                </td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>`;
+  } catch (error) {
+    console.error("Could not load online standings:", error);
+    note.textContent = "Unable to load standings";
     area.innerHTML = `
       <div class="empty">
-        No teams registered yet.<br>
-        Register teams in the Admin Panel to begin.
+        Could not load the online points table.<br>
+        Please refresh the page and try again.
       </div>`;
-    return;
   }
-
-  area.innerHTML = `
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Team</th>
-            <th>M</th>
-            <th>W</th>
-            <th>L</th>
-            <th>Pts</th>
-            <th>NRR</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          ${rows.map((t,i) => `
-            <tr>
-              <td>
-                <span class="rank">${i+1}</span>
-                <span class="team-name">${escapeHTML(t.name)}</span>
-              </td>
-              <td>${t.matches}</td>
-              <td>${t.wins}</td>
-              <td>${t.losses}</td>
-              <td class="points">${t.points}</td>
-              <td class="${t.nrr>0?'positive':t.nrr<0?'negative':''}">
-                ${t.nrr>0?'+':''}${t.nrr.toFixed(2)}
-              </td>
-            </tr>
-          `).join("")}
-        </tbody>
-      </table>
-    </div>`;
 }
 
-function renderFixtures() {
-  const matches = readData("matches", []);
+async function renderFixtures() {
   const root = document.getElementById("fixtures");
 
-  if (!matches.length) {
-    root.innerHTML = `
-      <div class="empty">
-        No fixtures have been generated yet.
-      </div>`;
-    return;
-  }
+  try {
+    const { data: matches, error } = await supabaseClient
+      .from("tournament_matches")
+      .select("*")
+      .order("round_number", { ascending: true })
+      .order("created_at", { ascending: true });
 
-  root.innerHTML = [...matches]
-    .sort((a,b) => (a.roundNumber || 1) - (b.roundNumber || 1))
-    .map(m => `
+    if (error) throw error;
+
+    if (!matches || !matches.length) {
+      root.innerHTML = `
+        <div class="empty">
+          No fixtures have been generated yet.
+        </div>`;
+      return;
+    }
+
+    root.innerHTML = matches.map(m => `
       <article class="fixture ${m.status === "pending" ? "pending" : ""}">
         <h3>${escapeHTML(m.round || "Match")}</h3>
 
-        <p class="${m.winner === m.teamA ? "winner" : ""}">
-          ${escapeHTML(m.teamA)}
-          ${m.status === "completed" ? "(" + m.scoreA + ")" : ""}
+        <p class="${m.winner === m.team_a ? "winner" : ""}">
+          ${escapeHTML(m.team_a)}
+          ${m.status === "completed" ? "(" + (m.score_a ?? 0) + ")" : ""}
         </p>
 
-        <p class="${m.winner === m.teamB ? "winner" : ""}">
-          ${escapeHTML(m.teamB)}
-          ${m.status === "completed" ? "(" + m.scoreB + ")" : ""}
+        <p class="${m.winner === m.team_b ? "winner" : ""}">
+          ${escapeHTML(m.team_b)}
+          ${m.status === "completed" ? "(" + (m.score_b ?? 0) + ")" : ""}
         </p>
 
         <small>
           ${m.status === "completed"
-            ? "Winner: " + escapeHTML(m.winner)
+            ? "Winner: " + escapeHTML(m.winner || "Not recorded")
             : m.status === "bye"
               ? "Bye — advances automatically"
               : "Awaiting result"}
         </small>
       </article>
     `).join("");
-}
 
-function renderPage() {
-  renderPointsTable();
-  renderFixtures();
+  } catch (error) {
+    console.error("Could not load online fixtures:", error);
+    root.innerHTML = `
+      <div class="empty">
+        Could not load fixtures. Please refresh the page.
+      </div>`;
+  }
+}
+  
+async function renderPage() {
+  await Promise.all([
+    renderPointsTable(),
+    renderFixtures()
+  ]);
 }
 
 renderPage();
@@ -396,4 +446,3 @@ window.addEventListener("focus", renderPage);
 
 </body>
 </html>
-```
