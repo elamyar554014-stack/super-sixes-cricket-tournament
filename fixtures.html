@@ -643,21 +643,39 @@ function downloadPDF() {
   document.title = originalTitle;
 }
 
-function loadFixtures() {
-  let saved = [];
+async function loadFixtures() {
   try {
-    // Prefer the public-facing mirror. If it is missing or empty, fall back
-    // to the Admin Panel's canonical match list.
-    const publicData = JSON.parse(localStorage.getItem("fixtures") || "[]");
-    const adminData = JSON.parse(localStorage.getItem("matches") || "[]");
-    saved = Array.isArray(publicData) && publicData.length
-      ? publicData
-      : adminData;
+    const { data, error } = await supabaseClient
+      .from("tournament_matches")
+      .select("*")
+      .order("round_number", { ascending: true })
+      .order("created_at", { ascending: true });
+
+    if (error) throw error;
+
+    const saved = (data || []).map((m, index) => ({
+      id: m.id,
+      type: m.status === "bye" || m.team_b === "BYE" ? "bye" : "match",
+      round: m.round,
+      roundName: m.round,
+      roundNumber: m.round_number,
+      matchNumber: index + 1,
+      teamA: m.team_a,
+      teamB: m.team_b,
+      scoreA: m.score_a ?? "",
+      scoreB: m.score_b ?? "",
+      oversA: m.overs_a ?? "",
+      oversB: m.overs_b ?? "",
+      winner: m.winner ?? "",
+      status: m.status ?? "pending"
+    }));
+
+    lastFixtures = normalizeFixtures(saved);
+    renderFixtures(lastFixtures);
   } catch (error) {
-    console.error("Could not read saved fixtures:", error);
+    console.error("Could not load online fixtures:", error);
+    renderFixtures([]);
   }
-  lastFixtures = normalizeFixtures(saved);
-  renderFixtures(lastFixtures);
 }
 
 loadFixtures();
