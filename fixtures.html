@@ -439,6 +439,13 @@
 <script>
 
 let lastFixtures = [];
+const SUPABASE_URL = "https://slkqiklzpoaalrvjfdew.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_xVobjT2a_3S3N__5gsR65Q_M1FBFpcu";
+
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
 
 function safeText(value) {
   return value == null || value === "" ? "TBA" : String(value);
