@@ -1031,25 +1031,71 @@ function renderTeams() {
   `).join("");
 }
 
-function saveTeam(i) {
+javascript
+async function saveTeam(i) {
   const oldName = teams[i].teamName;
-  const name = titleCaseName(document.getElementById("teamName" + i).value);
+  const name = titleCaseName(
+    document.getElementById("teamName" + i).value
+  );
 
-  if (!name) return alert("Team name is required.");
+  if (!name) {
+    return alert("Team name is required.");
+  }
 
   if (teams.some((t, j) =>
-    j !== i && String(t?.teamName || "").toLowerCase() === name.toLowerCase()
+    j !== i &&
+    String(t?.teamName || "").toLowerCase() === name.toLowerCase()
   )) {
     return alert("That team name already exists.");
   }
 
-  teams[i].teamName = name;
-  teams[i].captain = titleCaseName(document.getElementById("captain" + i).value);
-  teams[i].viceCaptain = titleCaseName(document.getElementById("vice" + i).value);
-  teams[i].contact = document.getElementById("contact" + i).value.trim();
-  teams[i].players = document.getElementById("players" + i).value
-    .split("\n").map(p => titleCaseName(p.trim())).filter(Boolean);
+  const captain = titleCaseName(
+    document.getElementById("captain" + i).value
+  );
 
+  const viceCaptain = titleCaseName(
+    document.getElementById("vice" + i).value
+  );
+
+  const contact = document.getElementById("contact" + i).value.trim();
+
+  const players = document.getElementById("players" + i).value
+    .split("\n")
+    .map(p => titleCaseName(p.trim()))
+    .filter(Boolean);
+
+  // Update Supabase if this team belongs to a database registration.
+  const teamId = teams[i].id;
+
+  if (teams[i].source === "supabase" && teamId) {
+    const { error } = await supabaseClient
+      .from("team_registrations")
+      .update({
+        team_name: name,
+        captain_name: captain,
+        vice_captain: viceCaptain,
+        phone: contact,
+        squad: players
+      })
+      .eq("id", teamId);
+
+    if (error) {
+      console.error("Supabase team update failed:", error);
+      return alert(
+        "Could not save this team to the online database.\n\n" +
+        error.message
+      );
+    }
+  }
+
+  // Update the local team data after the database update succeeds.
+  teams[i].teamName = name;
+  teams[i].captain = captain;
+  teams[i].viceCaptain = viceCaptain;
+  teams[i].contact = contact;
+  teams[i].players = players;
+
+  // Keep existing match names synchronized.
   matches.forEach(m => {
     if (m.teamA === oldName) m.teamA = name;
     if (m.teamB === oldName) m.teamB = name;
@@ -1058,7 +1104,12 @@ function saveTeam(i) {
 
   persist();
   refresh();
-  alert("Team updated.");
+
+  alert(
+    teams[i].source === "supabase"
+      ? "Team updated successfully in the online database."
+      : "Team updated locally. This team is not connected to a database registration."
+  );
 }
 
 function deleteTeam(i) {
@@ -1534,9 +1585,24 @@ function refresh() {
   // Reload persisted state only when storage can be read normally. This avoids
   // wiping the in-memory session if the browser blocks localStorage.
   const storedTeams = readData("teams", null);
-  const storedMatches = readData("matches", null);
-  if (Array.isArray(storedTeams)) teams = storedTeams;
-  if (Array.isArray(storedMatches)) matches = storedMatches;
+const storedMatches = readData("matches", null);
+
+// Preserve teams already loaded from Supabase.
+const supabaseTeams = teams.filter(
+  team => team && team.source === "supabase"
+);
+
+if (Array.isArray(storedTeams)) {
+  const localTeams = storedTeams.filter(
+    team => !team || team.source !== "supabase"
+  );
+
+  teams = [...localTeams, ...supabaseTeams];
+}
+
+if (Array.isArray(storedMatches)) {
+  matches = storedMatches;
+}
 
   if (!Array.isArray(teams)) teams = [];
   if (!Array.isArray(matches)) matches = [];
