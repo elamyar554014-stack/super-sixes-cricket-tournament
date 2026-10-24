@@ -2087,6 +2087,10 @@ if (Array.isArray(storedMatches)) {
     attachTeamFieldCapitalization();
     renderFixtures();
     renderMatchSelect();
+    
+    populateLiveMatchSelect();
+    updateLiveTeamOptions();
+    
     renderCustomOptions();
     renderResults();
     const sheetInput = document.getElementById("responsesSheetUrl");
