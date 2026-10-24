@@ -2449,6 +2449,21 @@ async function reloadLiveDeliveries() {
 }
 
 // Display the latest deliveries.
+ 
+// Display the current live score and overs.
+function renderLiveScore() {
+  const heading = document.getElementById("liveScoreHeading");
+  const overs = document.getElementById("liveOversDisplay");
+
+  if (heading) {
+    heading.textContent = `${liveTotalRuns}/${liveWickets}`;
+  }
+
+  if (overs) {
+    overs.textContent =
+      `Overs: ${Math.floor(liveLegalBalls / 6)}.${liveLegalBalls % 6}`;
+  }
+}
 function renderLiveBallHistory(deliveries) {
   const container = document.getElementById("liveBallHistory");
   if (!container) return;
