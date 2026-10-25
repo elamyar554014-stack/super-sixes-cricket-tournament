@@ -2662,6 +2662,41 @@ function bindLiveScoringUI() {
   populateLiveMatchSelect();
   updateLiveTeamOptions();
 
+
+  // Keep the scoring fields synchronized with the player dropdowns.
+function syncLivePlayerFields() {
+  const striker = document.getElementById("liveStriker");
+  const nonStriker = document.getElementById("liveNonStriker");
+  const bowler = document.getElementById("liveBowler");
+
+  const nextStriker = document.getElementById("nextStriker");
+  const nextNonStriker = document.getElementById("nextNonStriker");
+  const nextBowler = document.getElementById("nextBowler");
+
+  if (striker && nextStriker) {
+    nextStriker.value = striker.value;
+  }
+
+  if (nonStriker && nextNonStriker) {
+    nextNonStriker.value = nonStriker.value;
+  }
+
+  if (bowler && nextBowler) {
+    nextBowler.value = bowler.value;
+  }
+}
+
+document.getElementById("liveStriker")
+  ?.addEventListener("change", syncLivePlayerFields);
+
+document.getElementById("liveNonStriker")
+  ?.addEventListener("change", syncLivePlayerFields);
+
+document.getElementById("liveBowler")
+  ?.addEventListener("change", syncLivePlayerFields);
+
+syncLivePlayerFields();
+
   matchSelect.addEventListener("change", updateLiveTeamOptions);
 
   document.getElementById("startLiveInningsBtn")
