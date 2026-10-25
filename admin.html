@@ -1377,6 +1377,17 @@ async function saveTeam(i) {
   populateLiveMatchSelect();
   updateLiveTeamOptions();
 
+document.getElementById("liveStriker")
+  ?.addEventListener("change", syncLivePlayerFields);
+
+document.getElementById("liveNonStriker")
+  ?.addEventListener("change", syncLivePlayerFields);
+
+document.getElementById("liveBowler")
+  ?.addEventListener("change", syncLivePlayerFields);
+
+syncLivePlayerFields();
+
   renderCustomOptions();
   renderResults();
 
@@ -2662,7 +2673,7 @@ function bindLiveScoringUI() {
   updateLiveTeamOptions();
 
 
-  // Keep the scoring fields synchronized with the player dropdowns.
+// Keep scoring fields synchronized with player dropdowns.
 function syncLivePlayerFields() {
   const striker = document.getElementById("liveStriker");
   const nonStriker = document.getElementById("liveNonStriker");
@@ -2672,29 +2683,10 @@ function syncLivePlayerFields() {
   const nextNonStriker = document.getElementById("nextNonStriker");
   const nextBowler = document.getElementById("nextBowler");
 
-  if (striker && nextStriker) {
-    nextStriker.value = striker.value;
-  }
-
-  if (nonStriker && nextNonStriker) {
-    nextNonStriker.value = nonStriker.value;
-  }
-
-  if (bowler && nextBowler) {
-    nextBowler.value = bowler.value;
-  }
+  if (striker && nextStriker) nextStriker.value = striker.value;
+  if (nonStriker && nextNonStriker) nextNonStriker.value = nonStriker.value;
+  if (bowler && nextBowler) nextBowler.value = bowler.value;
 }
-
-document.getElementById("liveStriker")
-  ?.addEventListener("change", syncLivePlayerFields);
-
-document.getElementById("liveNonStriker")
-  ?.addEventListener("change", syncLivePlayerFields);
-
-document.getElementById("liveBowler")
-  ?.addEventListener("change", syncLivePlayerFields);
-
-syncLivePlayerFields();
 
   matchSelect.addEventListener("change", updateLiveTeamOptions);
 
