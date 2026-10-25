@@ -2486,11 +2486,18 @@ async function reloadLiveDeliveries() {
     })
     .eq("id", liveInningsId);
 
-  if (updateError) throw updateError;
+ if (updateError) throw updateError;
 
-  renderLiveScore();
-  renderLiveBallHistory(deliveries);
+// Check the selected innings over limit.
+const oversDropdown = document.getElementById("liveTotalOvers");
+
+if (oversDropdown && liveTotalOvers) {
+oversDropdown.value = String(liveTotalOvers);
 }
+
+renderLiveScore();
+renderLiveBallHistory(deliveries);
+
 
 // Display the latest deliveries.
  
@@ -2655,10 +2662,43 @@ return;
       document.getElementById("nextNonStriker").value = striker;
     }
 
-    // Recalculate and immediately display the saved score.
-    await reloadLiveDeliveries();
+   // Recalculate and immediately display the saved score.
+await reloadLiveDeliveries();
 
-    showLiveScoringMessage("Delivery saved successfully.");
+const completedOver =
+liveLegalBalls > 0 && liveLegalBalls % 6 === 0;
+
+if (completedOver) {
+// Swap ends after the over.
+const strikerField = document.getElementById("liveStriker");
+const nonStrikerField = document.getElementById("liveNonStriker");
+
+if (strikerField && nonStrikerField) {
+const oldStriker = strikerField.value;
+strikerField.value = nonStrikerField.value;
+nonStrikerField.value = oldStriker;
+}
+
+const nextStrikerField = document.getElementById("nextStriker");
+const nextNonStrikerField = document.getElementById("nextNonStriker");
+
+if (nextStrikerField && nextNonStrikerField) {
+const oldNextStriker = nextStrikerField.value;
+nextStrikerField.value = nextNonStrikerField.value;
+nextNonStrikerField.value = oldNextStriker;
+}
+
+showLiveScoringMessage(
+"Over completed! Select the next bowler before recording another delivery."
+);
+
+const bowlerField = document.getElementById("liveBowler");
+if (bowlerField) bowlerField.value = "";
+
+} else {
+showLiveScoringMessage("Delivery saved successfully.");
+}
+
   } catch (error) {
     console.error("Record live delivery error:", error);
 
