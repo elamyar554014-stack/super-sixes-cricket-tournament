@@ -2606,6 +2606,48 @@ if (rotateStrike) {
   }
 }
 
+// Undo the most recent delivery.
+async function undoLastLiveDelivery() {
+  try {
+    if (!liveInningsId) {
+      showLiveScoringMessage("Start an innings first.", true);
+      return;
+    }
+
+    const { data, error: findError } = await supabaseClient
+      .from("match_deliveries")
+      .select("id")
+      .eq("innings_id", liveInningsId)
+      .order("ball_number", { ascending: false })
+      .limit(1);
+
+    if (findError) throw findError;
+
+    if (!data || data.length === 0) {
+      showLiveScoringMessage("There are no deliveries to undo.");
+      return;
+    }
+
+    const { error: deleteError } = await supabaseClient
+      .from("match_deliveries")
+      .delete()
+      .eq("id", data[0].id);
+
+    if (deleteError) throw deleteError;
+
+    await reloadLiveDeliveries();
+
+    showLiveScoringMessage("Last delivery undone.");
+  } catch (error) {
+    console.error("Undo live delivery error:", error);
+
+    showLiveScoringMessage(
+      error.message || "Could not undo the delivery.",
+      true
+    );
+  }
+}
+ 
 // Connect the Live Scoring buttons.
 function bindLiveScoringUI() {
   const matchSelect = document.getElementById("liveMatchSelect");
