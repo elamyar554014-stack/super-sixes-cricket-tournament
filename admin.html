@@ -560,8 +560,16 @@ h1 { font-size:23px; }
   </div>
 
     <div class="card">
-    <h3 id="liveScoreHeading">0/0</h3>
-    <p id="liveOversDisplay" class="muted">Overs: 0.0</p>
+   <h3 id="liveScoreHeading">0/0</h3>
+<p id="liveOversDisplay" class="muted">Overs: 0.0</p>
+
+<p id="liveTargetDisplay" class="muted">
+  Target: Not set
+</p>
+
+<p id="liveInningsStatus" class="muted" aria-live="polite">
+  No innings started
+</p>
     <p id="liveTargetDisplay" class="muted" aria-live="polite">
       Target: Not set
     </p>
@@ -2339,117 +2347,7 @@ function updateLiveTeamOptions() {
   updatePlayerDropdowns();
 }
 
-// Start a new innings or resume an existing innings.
-async function startLiveInnings() {
-  try {
-    const matchId = document.getElementById("liveMatchSelect")?.value;
-    const battingTeam = document.getElementById("liveBattingTeam")?.value;
-    const bowlingTeam = document.getElementById("liveBowlingTeam")?.value;
-    const selectedOvers = Number(
-  document.getElementById("liveTotalOvers")?.value || 6
-);
-
-if (!Number.isInteger(selectedOvers) || selectedOvers < 1) {
-  showLiveScoringMessage("Please select a valid number of overs.", true);
-  return;
-}
-
-liveTotalOvers = selectedOvers;
-
-    const striker = document.getElementById("liveStriker")?.value.trim();
-    const nonStriker = document.getElementById("liveNonStriker")?.value.trim();
-    const bowler = document.getElementById("liveBowler")?.value.trim();
-
-    if (!matchId || !battingTeam || !bowlingTeam) {
-      showLiveScoringMessage("Please select a match and both teams.", true);
-      return;
-    }
-
-    if (battingTeam === bowlingTeam) {
-      showLiveScoringMessage("Batting and bowling teams must be different.", true);
-      return;
-    }
-
-    if (!striker || !nonStriker || !bowler) {
-      showLiveScoringMessage(
-        "Enter the striker, non-striker, and bowler before starting.",
-        true
-      );
-      return;
-    }
-
-    showLiveScoringMessage("Starting innings...");
-
-    const { data: existing, error: findError } = await supabaseClient
-      .from("match_innings")
-      .select("*")
-      .eq("match_id", String(matchId))
-      .eq("innings_number", 1)
-      .maybeSingle();
-
-    if (findError) throw findError;
-
-    let innings = existing;
-
-    if (!innings) {
-      const { data, error } = await supabaseClient
-        .from("match_innings")
-        .insert({
-  match_id: String(matchId),
-  innings_number: 1,
-  batting_team: battingTeam,
-  bowling_team: bowlingTeam,
-  total_runs: 0,
-  wickets: 0,
-  legal_balls: 0,
-  total_overs: selectedOvers,
-  status: "in_progress"
-})
-        .select()
-        .single();
-
-      if (error) throw error;
-      innings = data;
-    } else if (
-      innings.batting_team !== battingTeam ||
-      innings.bowling_team !== bowlingTeam
-    ) {
-      showLiveScoringMessage(
-        "An innings already exists for this match with different teams. Select the original teams to resume it.",
-        true
-      );
-      return;
-    }
-
-    liveInningsId = innings.id;
-    liveTotalOvers = Number(innings.total_overs || selectedOvers);
-
-const oversDropdown = document.getElementById("liveTotalOvers");
-if (oversDropdown) {
-  oversDropdown.value = String(liveTotalOvers);
-}
-    liveMatchId = String(matchId);
-    liveInningsNumber = 1;
-
-    document.getElementById("liveStriker").value = nonStriker;
-    document.getElementById("liveNonStriker").value = striker;
-    document.getElementById("nextBowler").value = bowler;
-
-    await reloadLiveDeliveries();
-
-    showLiveScoringMessage(
-      existing ? "Existing innings loaded." : "Innings started successfully."
-    );
-  } catch (error) {
-    console.error("Start live innings error:", error);
-    showLiveScoringMessage(
-      error.message || "Could not start the innings.",
-      true
-    );
-  }
-}
-
-// Load saved deliveries and recalculate the innings score.
+// Load saved deliveries without resetting a completed innings.
 async function reloadLiveDeliveries() {
   if (!liveInningsId) return;
 
@@ -2473,37 +2371,115 @@ async function reloadLiveDeliveries() {
     0
   );
 
-  liveLegalBalls = deliveries.reduce((sum, delivery) => {
-    return sum + (
-      delivery.extra_type === "wide" ||
-      delivery.extra_type === "no_ball"
-        ? 0
-        : 1
-    );
-  }, 0);
+  liveLegalBalls = deliveries.reduce(
+    (sum, delivery) =>
+      sum +
+      (
+        delivery.extra_type === "wide" ||
+        delivery.extra_type === "no_ball"
+          ? 0
+          : 1
+      ),
+    0
+  );
 
+  // Update statistics but preserve the existing innings status.
   const { error: updateError } = await supabaseClient
     .from("match_innings")
     .update({
       total_runs: liveTotalRuns,
       wickets: liveWickets,
       legal_balls: liveLegalBalls,
-      status: "in_progress",
       updated_at: new Date().toISOString()
     })
     .eq("id", liveInningsId);
 
- if (updateError) throw updateError;
+  if (updateError) throw updateError;
 
-// Check the selected innings over limit.
-const oversDropdown = document.getElementById("liveTotalOvers");
+  const oversDropdown = document.getElementById("liveTotalOvers");
 
-if (oversDropdown && liveTotalOvers) {
-oversDropdown.value = String(liveTotalOvers);
+  if (oversDropdown && liveTotalOvers) {
+    oversDropdown.value = String(liveTotalOvers);
+  }
+
+  renderLiveScore();
+  renderLiveBallHistory(deliveries);
+
+  // Display innings status and target.
+  await updateLiveInningsDisplay();
 }
 
-renderLiveScore();
-renderLiveBallHistory(deliveries);
+// Load saved deliveries without resetting a completed innings.
+async function reloadLiveDeliveries() {
+  if (!liveInningsId) return;
+
+  const { data, error } = await supabaseClient
+    .from("match_deliveries")
+    .select("*")
+    .eq("innings_id", liveInningsId)
+    .order("ball_number", { ascending: true });
+
+  if (error) throw error;
+
+  const deliveries = data || [];
+
+  // Calculate total runs.
+  liveTotalRuns = deliveries.reduce(
+    (sum, delivery) =>
+      sum + Number(delivery.total_runs || 0),
+    0
+  );
+
+  // Calculate wickets.
+  liveWickets = deliveries.reduce(
+    (sum, delivery) =>
+      sum + (delivery.wicket ? 1 : 0),
+    0
+  );
+
+  // Calculate legal balls.
+  liveLegalBalls = deliveries.reduce(
+    (sum, delivery) =>
+      sum +
+      (
+        delivery.extra_type === "wide" ||
+        delivery.extra_type === "no_ball"
+          ? 0
+          : 1
+      ),
+    0
+  );
+
+  // Update scores without changing the innings status.
+  const { error: updateError } = await supabaseClient
+    .from("match_innings")
+    .update({
+      total_runs: liveTotalRuns,
+      wickets: liveWickets,
+      legal_balls: liveLegalBalls,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", liveInningsId);
+
+  if (updateError) throw updateError;
+
+  // Keep the selected over limit visible.
+  const oversDropdown =
+    document.getElementById("liveTotalOvers");
+
+  if (oversDropdown && liveTotalOvers) {
+    oversDropdown.value = String(liveTotalOvers);
+  }
+
+  // Refresh the scoreboard and delivery history.
+  renderLiveScore();
+  renderLiveBallHistory(deliveries);
+
+  // Refresh target and innings status.
+  if (typeof updateLiveInningsDisplay === "function") {
+    await updateLiveInningsDisplay();
+  }
+}
 
 } // End of reloadLiveDeliveries()
 
@@ -2550,7 +2526,7 @@ function renderLiveBallHistory(deliveries) {
 
 // Save runs, extras, and wickets to Supabase.
 
-  // Save runs, extras, and wickets to Supabase.
+// Save runs, extras, and wickets, and manage both innings.
 async function recordLiveDelivery(action, value) {
   try {
     if (!liveInningsId) {
@@ -2558,24 +2534,45 @@ async function recordLiveDelivery(action, value) {
       return;
     }
 
-    const oversDropdown = document.getElementById("liveTotalOvers");
-const selectedOvers = Number(
-oversDropdown?.value || liveTotalOvers || 6
-);
+    // Load the current saved innings.
+    const { data: currentInnings, error: inningsError } =
+      await supabaseClient
+        .from("match_innings")
+        .select("*")
+        .eq("id", liveInningsId)
+        .single();
 
-const maximumLegalBalls = selectedOvers * 6;
+    if (inningsError) throw inningsError;
 
-if (liveLegalBalls >= maximumLegalBalls) {
-showLiveScoringMessage(
-`Innings complete! The selected limit of ${selectedOvers} overs has been reached.`,
-true
-);
-return;
-}
+    if (String(currentInnings.status).toLowerCase() === "completed") {
+      showLiveScoringMessage("This innings is already completed.", true);
+      await updateLiveInningsDisplay();
+      return;
+    }
 
-    const striker = document.getElementById("liveStriker")?.value.trim();
-    const nonStriker = document.getElementById("liveNonStriker")?.value.trim();
-    const bowler = document.getElementById("liveBowler")?.value.trim();
+    const selectedOvers = Number(
+      currentInnings.total_overs || liveTotalOvers || 6
+    );
+
+    const maximumLegalBalls = selectedOvers * 6;
+
+    // Refuse another delivery if the innings has already reached its limit.
+    if (
+      liveLegalBalls >= maximumLegalBalls ||
+      liveWickets >= 10
+    ) {
+      await finishLiveInnings();
+      return;
+    }
+
+    const striker =
+      document.getElementById("liveStriker")?.value.trim();
+
+    const nonStriker =
+      document.getElementById("liveNonStriker")?.value.trim();
+
+    const bowler =
+      document.getElementById("liveBowler")?.value.trim();
 
     if (!striker || !nonStriker || !bowler) {
       showLiveScoringMessage(
@@ -2585,12 +2582,14 @@ return;
       return;
     }
 
-    const { data: previousBalls, error: previousError } = await supabaseClient
-      .from("match_deliveries")
-      .select("ball_number")
-      .eq("innings_id", liveInningsId)
-      .order("ball_number", { ascending: false })
-      .limit(1);
+    // Find the next delivery number.
+    const { data: previousBalls, error: previousError } =
+      await supabaseClient
+        .from("match_deliveries")
+        .select("ball_number")
+        .eq("innings_id", liveInningsId)
+        .order("ball_number", { ascending: false })
+        .limit(1);
 
     if (previousError) throw previousError;
 
@@ -2630,6 +2629,7 @@ return;
     const overNumber = Math.floor(liveLegalBalls / 6);
     const ballInOver = (liveLegalBalls % 6) + 1;
 
+    // Save the delivery to Supabase.
     const { error: insertError } = await supabaseClient
       .from("match_deliveries")
       .insert({
@@ -2650,7 +2650,8 @@ return;
 
     if (insertError) throw insertError;
 
-    // Rotate strike for odd completed runs.
+    // Rotate strike when the completed delivery produces an odd number
+    // of runs credited to the batters or to byes/leg-byes.
     let rotateStrike = false;
 
     if (action === "runs") {
@@ -2663,50 +2664,116 @@ return;
     }
 
     if (rotateStrike) {
-      document.getElementById("liveStriker").value = nonStriker;
-      document.getElementById("liveNonStriker").value = striker;
+      const strikerField = document.getElementById("liveStriker");
+      const nonStrikerField = document.getElementById("liveNonStriker");
+      const nextStrikerField = document.getElementById("nextStriker");
+      const nextNonStrikerField = document.getElementById("nextNonStriker");
 
-      document.getElementById("nextStriker").value = nonStriker;
-      document.getElementById("nextNonStriker").value = striker;
+      if (strikerField && nonStrikerField) {
+        strikerField.value = nonStriker;
+        nonStrikerField.value = striker;
+      }
+
+      if (nextStrikerField && nextNonStrikerField) {
+        nextStrikerField.value = nonStriker;
+        nextNonStrikerField.value = striker;
+      }
     }
-    
-// Recalculate and immediately display the saved score.
-await reloadLiveDeliveries();
 
-const completedOver =
-  liveLegalBalls > 0 && liveLegalBalls % 6 === 0;
+    // Recalculate the score from the saved deliveries.
+    await reloadLiveDeliveries();
 
-if (completedOver) {
-  // Swap the batters at the end of a completed over.
-  const strikerField = document.getElementById("liveStriker");
-  const nonStrikerField = document.getElementById("liveNonStriker");
-  const nextStrikerField = document.getElementById("nextStriker");
-  const nextNonStrikerField = document.getElementById("nextNonStriker");
+    // Read the updated score and determine whether the innings has ended.
+    const { data: updatedInnings, error: updatedError } =
+      await supabaseClient
+        .from("match_innings")
+        .select("*")
+        .eq("id", liveInningsId)
+        .single();
 
-  if (strikerField && nonStrikerField) {
-    const oldStriker = strikerField.value;
-    strikerField.value = nonStrikerField.value;
-    nonStrikerField.value = oldStriker;
-  }
+    if (updatedError) throw updatedError;
 
-  if (nextStrikerField && nextNonStrikerField) {
-    nextStrikerField.value = strikerField?.value || "";
-    nextNonStrikerField.value = nonStrikerField?.value || "";
-  }
+    const inningsEnded =
+      Number(updatedInnings.legal_balls || 0) >= maximumLegalBalls ||
+      Number(updatedInnings.wickets || 0) >= 10;
 
-  // Clear the bowler so the admin must choose another.
-  const bowlerField = document.getElementById("liveBowler");
-  const nextBowlerField = document.getElementById("nextBowler");
+    // During the second innings, check whether the target has been reached.
+    if (Number(updatedInnings.innings_number) === 2) {
+      const { data: firstInnings, error: firstError } =
+        await supabaseClient
+          .from("match_innings")
+          .select("total_runs")
+          .eq("match_id", String(liveMatchId))
+          .eq("innings_number", 1)
+          .maybeSingle();
 
-  if (bowlerField) bowlerField.value = "";
-  if (nextBowlerField) nextBowlerField.value = "";
+      if (firstError) throw firstError;
 
-  showLiveScoringMessage(
-    "Over completed! Batters have switched. Select the next bowler."
-  );
-} else {
-  showLiveScoringMessage("Delivery saved successfully.");
-}
+      if (firstInnings) {
+        const target = Number(firstInnings.total_runs || 0) + 1;
+
+        if (Number(updatedInnings.total_runs || 0) >= target) {
+          const { error: completeError } = await supabaseClient
+            .from("match_innings")
+            .update({
+              status: "completed",
+              updated_at: new Date().toISOString()
+            })
+            .eq("id", liveInningsId);
+
+          if (completeError) throw completeError;
+
+          await updateLiveInningsDisplay();
+
+          showLiveScoringMessage(
+            `${updatedInnings.batting_team} wins! Target of ${target} reached.`
+          );
+
+          return;
+        }
+      }
+    }
+
+    // If the innings has ended, mark it complete and prepare the next step.
+    if (inningsEnded) {
+      await finishLiveInnings();
+      return;
+    }
+
+    // Handle the end of an over.
+    const completedOver =
+      liveLegalBalls > 0 && liveLegalBalls % 6 === 0;
+
+    if (completedOver) {
+      const strikerField = document.getElementById("liveStriker");
+      const nonStrikerField = document.getElementById("liveNonStriker");
+      const nextStrikerField = document.getElementById("nextStriker");
+      const nextNonStrikerField = document.getElementById("nextNonStriker");
+      const bowlerField = document.getElementById("liveBowler");
+      const nextBowlerField = document.getElementById("nextBowler");
+
+      if (strikerField && nonStrikerField) {
+        const oldStriker = strikerField.value;
+        strikerField.value = nonStrikerField.value;
+        nonStrikerField.value = oldStriker;
+      }
+
+      if (nextStrikerField && nextNonStrikerField) {
+        nextStrikerField.value = strikerField?.value || "";
+        nextNonStrikerField.value = nonStrikerField?.value || "";
+      }
+
+      if (bowlerField) bowlerField.value = "";
+      if (nextBowlerField) nextBowlerField.value = "";
+
+      showLiveScoringMessage(
+        "Over completed! Select the next bowler."
+      );
+    } else {
+      showLiveScoringMessage("Delivery saved successfully.");
+    }
+
+    await updateLiveInningsDisplay();
 
   } catch (error) {
     console.error("Record live delivery error:", error);
@@ -2718,6 +2785,115 @@ if (completedOver) {
   }
 }
 
+
+// Mark the current innings complete and prepare the next innings.
+async function finishLiveInnings() {
+  try {
+    if (!liveInningsId) return;
+
+    const { data: innings, error: readError } = await supabaseClient
+      .from("match_innings")
+      .select("*")
+      .eq("id", liveInningsId)
+      .single();
+
+    if (readError) throw readError;
+
+    if (String(innings.status).toLowerCase() !== "completed") {
+      const { error: updateError } = await supabaseClient
+        .from("match_innings")
+        .update({
+          status: "completed",
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", liveInningsId);
+
+      if (updateError) throw updateError;
+    }
+
+    await updateLiveInningsDisplay();
+
+    // The first innings has ended: reverse the selected teams.
+    if (Number(innings.innings_number) === 1) {
+      const battingDropdown = document.getElementById("liveBattingTeam");
+      const bowlingDropdown = document.getElementById("liveBowlingTeam");
+
+      if (battingDropdown && bowlingDropdown) {
+        battingDropdown.value = innings.bowling_team;
+        bowlingDropdown.value = innings.batting_team;
+
+        battingDropdown.dispatchEvent(new Event("change", {
+          bubbles: true
+        }));
+
+        bowlingDropdown.dispatchEvent(new Event("change", {
+          bubbles: true
+        }));
+      }
+
+      // Clear the player fields for the chasing innings.
+      [
+        "liveStriker",
+        "liveNonStriker",
+        "liveBowler",
+        "nextStriker",
+        "nextNonStriker",
+        "nextBowler"
+      ].forEach(id => {
+        const field = document.getElementById(id);
+        if (field) field.value = "";
+      });
+
+      showLiveScoringMessage(
+        `First innings completed: ${innings.batting_team} scored ${Number(innings.total_runs || 0)}. ` +
+        `Target for ${innings.bowling_team}: ${Number(innings.total_runs || 0) + 1}. ` +
+        "Teams have switched. Enter the new batters and bowler, then start the second innings."
+      );
+
+    } else {
+      // The second innings ended without reaching the target.
+      const { data: firstInnings, error: firstError } =
+        await supabaseClient
+          .from("match_innings")
+          .select("batting_team, total_runs")
+          .eq("match_id", String(innings.match_id))
+          .eq("innings_number", 1)
+          .maybeSingle();
+
+      if (firstError) throw firstError;
+
+      if (!firstInnings) {
+        showLiveScoringMessage("Second innings completed.");
+        return;
+      }
+
+      const firstScore = Number(firstInnings.total_runs || 0);
+      const chaseScore = Number(innings.total_runs || 0);
+
+      let result;
+
+      if (chaseScore === firstScore) {
+        result = "Match tied!";
+      } else {
+        result =
+          `${firstInnings.batting_team} wins by ${firstScore - chaseScore} runs!`;
+      }
+
+      showLiveScoringMessage(
+        `Match completed. ${result} Final scores: ${firstInnings.batting_team} ${firstScore}; ` +
+        `${innings.batting_team} ${chaseScore}.`
+      );
+    }
+
+  } catch (error) {
+    console.error("Finish innings error:", error);
+
+    showLiveScoringMessage(
+      error.message || "Could not complete the innings.",
+      true
+    );
+  }
+}
 // Undo the most recent delivery.
 async function undoLastLiveDelivery() {
   try {
