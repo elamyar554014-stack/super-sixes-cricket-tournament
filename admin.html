@@ -559,9 +559,16 @@ h1 { font-size:23px; }
     <p id="liveScoringMessage" class="msg" aria-live="polite"></p>
   </div>
 
-  <div class="card">
+    <div class="card">
     <h3 id="liveScoreHeading">0/0</h3>
     <p id="liveOversDisplay" class="muted">Overs: 0.0</p>
+    <p id="liveTargetDisplay" class="muted" aria-live="polite">
+      Target: Not set
+    </p>
+    <p id="liveInningsStatus" class="muted" aria-live="polite">
+      No innings started
+    </p>
+
 
     <label>BATTER ON STRIKE</label>
     <input id="nextStriker" placeholder="Current striker">
