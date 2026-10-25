@@ -2661,42 +2661,43 @@ return;
       document.getElementById("nextStriker").value = nonStriker;
       document.getElementById("nextNonStriker").value = striker;
     }
-
-   // Recalculate and immediately display the saved score.
+    
+// Recalculate and immediately display the saved score.
 await reloadLiveDeliveries();
 
 const completedOver =
-liveLegalBalls > 0 && liveLegalBalls % 6 === 0;
+  liveLegalBalls > 0 && liveLegalBalls % 6 === 0;
 
 if (completedOver) {
-// Swap ends after the over.
-const strikerField = document.getElementById("liveStriker");
-const nonStrikerField = document.getElementById("liveNonStriker");
+  // Swap the batters at the end of a completed over.
+  const strikerField = document.getElementById("liveStriker");
+  const nonStrikerField = document.getElementById("liveNonStriker");
+  const nextStrikerField = document.getElementById("nextStriker");
+  const nextNonStrikerField = document.getElementById("nextNonStriker");
 
-if (strikerField && nonStrikerField) {
-const oldStriker = strikerField.value;
-strikerField.value = nonStrikerField.value;
-nonStrikerField.value = oldStriker;
-}
+  if (strikerField && nonStrikerField) {
+    const oldStriker = strikerField.value;
+    strikerField.value = nonStrikerField.value;
+    nonStrikerField.value = oldStriker;
+  }
 
-const nextStrikerField = document.getElementById("nextStriker");
-const nextNonStrikerField = document.getElementById("nextNonStriker");
+  if (nextStrikerField && nextNonStrikerField) {
+    nextStrikerField.value = strikerField?.value || "";
+    nextNonStrikerField.value = nonStrikerField?.value || "";
+  }
 
-if (nextStrikerField && nextNonStrikerField) {
-const oldNextStriker = nextStrikerField.value;
-nextStrikerField.value = nextNonStrikerField.value;
-nextNonStrikerField.value = oldNextStriker;
-}
+  // Clear the bowler so the admin must choose another.
+  const bowlerField = document.getElementById("liveBowler");
+  const nextBowlerField = document.getElementById("nextBowler");
 
-showLiveScoringMessage(
-"Over completed! Select the next bowler before recording another delivery."
-);
+  if (bowlerField) bowlerField.value = "";
+  if (nextBowlerField) nextBowlerField.value = "";
 
-const bowlerField = document.getElementById("liveBowler");
-if (bowlerField) bowlerField.value = "";
-
+  showLiveScoringMessage(
+    "Over completed! Batters have switched. Select the next bowler."
+  );
 } else {
-showLiveScoringMessage("Delivery saved successfully.");
+  showLiveScoringMessage("Delivery saved successfully.");
 }
 
   } catch (error) {
