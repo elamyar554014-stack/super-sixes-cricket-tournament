@@ -2501,6 +2501,8 @@ function renderLiveBallHistory(deliveries) {
 }
 
 // Save runs, extras, and wickets to Supabase.
+
+  // Save runs, extras, and wickets to Supabase.
 async function recordLiveDelivery(action, value) {
   try {
     if (!liveInningsId) {
@@ -2514,7 +2516,7 @@ async function recordLiveDelivery(action, value) {
 
     if (!striker || !nonStriker || !bowler) {
       showLiveScoringMessage(
-        "Enter the striker, non-striker, and bowler.",
+        "Select the striker, non-striker, and bowler.",
         true
       );
       return;
@@ -2562,7 +2564,6 @@ async function recordLiveDelivery(action, value) {
     }
 
     const totalDeliveryRuns = batterRuns + extras;
-
     const overNumber = Math.floor(liveLegalBalls / 6);
     const ballInOver = (liveLegalBalls % 6) + 1;
 
@@ -2586,32 +2587,35 @@ async function recordLiveDelivery(action, value) {
 
     if (insertError) throw insertError;
 
- // Determine whether the batters should change ends.
-let rotateStrike = false;
+    // Rotate strike for odd completed runs.
+    let rotateStrike = false;
 
-if (action === "runs") {
-  rotateStrike = batterRuns % 2 === 1;
-} else if (action === "extra") {
-  if (["bye", "leg_bye"].includes(extraType)) {
-    rotateStrike = extras % 2 === 1;
-  }
-}
+    if (action === "runs") {
+      rotateStrike = batterRuns % 2 === 1;
+    } else if (
+      action === "extra" &&
+      ["bye", "leg_bye"].includes(extraType)
+    ) {
+      rotateStrike = extras % 2 === 1;
+    }
 
-// Change ends after an odd number of runs.
-if (rotateStrike) {
-  document.getElementById("liveStriker").value = nonStriker;
-  document.getElementById("liveNonStriker").value = striker;
+    if (rotateStrike) {
+      document.getElementById("liveStriker").value = nonStriker;
+      document.getElementById("liveNonStriker").value = striker;
 
-  document.getElementById("nextStriker").value = nonStriker;
-  document.getElementById("nextNonStriker").value = striker;
-}
+      document.getElementById("nextStriker").value = nonStriker;
+      document.getElementById("nextNonStriker").value = striker;
+    }
 
-    showLiveScoringMessage("Last delivery undone.");
+    // Recalculate and immediately display the saved score.
+    await reloadLiveDeliveries();
+
+    showLiveScoringMessage("Delivery saved successfully.");
   } catch (error) {
-    console.error("Undo live delivery error:", error);
+    console.error("Record live delivery error:", error);
 
     showLiveScoringMessage(
-      error.message || "Could not undo the delivery.",
+      error.message || "Could not save the delivery.",
       true
     );
   }
