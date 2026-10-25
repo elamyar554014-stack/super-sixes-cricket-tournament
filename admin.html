@@ -3002,7 +3002,165 @@ async function undoLastLiveDelivery() {
     );
   }
 }
- 
+
+  // Start or resume an innings in Live Scoring.
+async function startLiveInnings() {
+  const message = document.getElementById("liveScoringMessage");
+  const matchSelect = document.getElementById("liveMatchSelect");
+  const battingSelect = document.getElementById("liveBattingTeam");
+  const bowlingSelect = document.getElementById("liveBowlingTeam");
+  const strikerField = document.getElementById("liveStriker");
+  const nonStrikerField = document.getElementById("liveNonStriker");
+  const bowlerField = document.getElementById("liveBowler");
+  const oversSelect = document.getElementById("liveTotalOvers");
+
+  try {
+    if (
+      !matchSelect ||
+      !battingSelect ||
+      !bowlingSelect ||
+      !strikerField ||
+      !nonStrikerField ||
+      !bowlerField
+    ) {
+      throw new Error("Some Live Scoring fields are missing from the page.");
+    }
+
+    const matchId = matchSelect.value;
+    const battingTeam = battingSelect.value;
+    const bowlingTeam = bowlingSelect.value;
+    const striker = strikerField.value.trim();
+    const nonStriker = nonStrikerField.value.trim();
+    const bowler = bowlerField.value.trim();
+    const totalOvers = Number(oversSelect?.value || 6);
+
+    if (!matchId) {
+      throw new Error("Please select a match.");
+    }
+
+    if (!battingTeam || !bowlingTeam || battingTeam === bowlingTeam) {
+      throw new Error("Select two different teams.");
+    }
+
+    if (!striker || !nonStriker || !bowler) {
+      throw new Error("Select the striker, non-striker, and bowler.");
+    }
+
+    if (striker === nonStriker) {
+      throw new Error("The striker and non-striker must be different players.");
+    }
+
+    if (!Number.isInteger(totalOvers) || totalOvers < 1) {
+      throw new Error("Select a valid number of overs.");
+    }
+
+    // Find existing innings for this match.
+    const { data: existingInnings, error: inningsError } =
+      await supabaseClient
+        .from("match_innings")
+        .select("*")
+        .eq("match_id", matchId)
+        .order("innings_number", { ascending: true });
+
+    if (inningsError) throw inningsError;
+
+    const inningsList = existingInnings || [];
+    const firstInnings = inningsList.find(
+      innings => Number(innings.innings_number) === 1
+    );
+
+    let inningsNumber = 1;
+
+    if (firstInnings) {
+      if (firstInnings.status !== "completed") {
+        throw new Error(
+          "The first innings already exists and is not completed. Resume it instead of starting another innings."
+        );
+      }
+
+      const secondInnings = inningsList.find(
+        innings => Number(innings.innings_number) === 2
+      );
+
+      if (secondInnings) {
+        if (secondInnings.status === "completed") {
+          throw new Error("Both innings are completed. This match has ended.");
+        }
+
+        throw new Error(
+          "The second innings already exists. Use the existing innings instead of creating another one."
+        );
+      }
+
+      if (
+        String(battingTeam) !== String(firstInnings.bowling_team) ||
+        String(bowlingTeam) !== String(firstInnings.batting_team)
+      ) {
+        throw new Error(
+          "For the second innings, the teams must switch batting and bowling roles."
+        );
+      }
+
+      inningsNumber = 2;
+    }
+
+    // Insert the next innings.
+    const { data: newInnings, error: insertError } =
+      await supabaseClient
+        .from("match_innings")
+        .insert({
+          match_id: matchId,
+          innings_number: inningsNumber,
+          batting_team: battingTeam,
+          bowling_team: bowlingTeam,
+          total_runs: 0,
+          wickets: 0,
+          legal_balls: 0,
+          total_overs: totalOvers,
+          status: "in_progress"
+        })
+        .select()
+        .single();
+
+    if (insertError) throw insertError;
+
+    // Set the active innings state used by the scoring functions.
+    liveInningsId = newInnings.id;
+    liveInningsNumber = inningsNumber;
+    liveTotalRuns = 0;
+    liveWickets = 0;
+    liveLegalBalls = 0;
+    liveTotalOvers = totalOvers;
+
+    if (typeof syncLivePlayerFields === "function") {
+      syncLivePlayerFields();
+    }
+
+    if (typeof reloadLiveDeliveries === "function") {
+      await reloadLiveDeliveries();
+    }
+
+    if (typeof updateLiveInningsDisplay === "function") {
+      await updateLiveInningsDisplay();
+    }
+
+    if (message) {
+      message.textContent = inningsNumber === 1
+        ? "First innings started successfully."
+        : "Second innings started. The chase is now underway.";
+    }
+
+  } catch (error) {
+    console.error("Start live innings error:", error);
+
+    if (message) {
+      message.textContent = error.message || "Could not start the innings.";
+    } else {
+      alert(error.message || "Could not start the innings.");
+    }
+  }
+}
+
 // Connect the Live Scoring buttons.
 function bindLiveScoringUI() {
   const matchSelect = document.getElementById("liveMatchSelect");
