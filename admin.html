@@ -2476,11 +2476,9 @@ async function reloadLiveDeliveries() {
   renderLiveBallHistory(deliveries);
 
   // Refresh target and innings status.
-  if (typeof updateLiveInningsDisplay === "function") {
+    if (typeof updateLiveInningsDisplay === "function") {
     await updateLiveInningsDisplay();
   }
-}
-
 } // End of reloadLiveDeliveries()
 
 // Display the latest deliveries.
