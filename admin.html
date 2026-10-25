@@ -2575,11 +2575,24 @@ async function recordLiveDelivery(action, value) {
 
     if (insertError) throw insertError;
 
-    // Switch strike when the completed delivery's total is odd.
-    if (totalDeliveryRuns % 2 === 1) {
-      document.getElementById("nextStriker").value = nonStriker;
-      document.getElementById("nextNonStriker").value = striker;
-    }
+    // Rotate strike for odd runs completed by running or byes/leg-byes.
+    // Wides and no-balls do not automatically rotate strike just
+    // because the penalty run makes the total odd.
+let rotateStrike = false;
+
+if (action === "runs") {
+  rotateStrike = batterRuns % 2 === 1;
+} else if (
+  action === "extra" &&
+  ["bye", "leg_bye"].includes(extraType)
+) {
+  rotateStrike = extras % 2 === 1;
+}
+
+if (rotateStrike) {
+  document.getElementById("liveStriker").value = nonStriker;
+  document.getElementById("liveNonStriker").value = striker;
+}
 
     await reloadLiveDeliveries();
 
