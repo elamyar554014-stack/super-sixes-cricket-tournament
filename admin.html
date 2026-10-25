@@ -311,7 +311,7 @@ h1 { font-size:23px; }
 
 <div id="appNotice" role="status" aria-live="polite"></div>
 
-<div id="login" class="card">
+<div id="loginCard" class="card">
   <h2>Admin Login</h2>
 
   <label for="email">ADMIN EMAIL</label>
@@ -1037,10 +1037,18 @@ function makeId() {
     Math.random().toString(36).slice(2,5);
 }
 
-async function login() { 
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
+window.login = async function () {
+  const emailField = document.getElementById("email");
+  const passwordField = document.getElementById("password");
   const loginMsg = document.getElementById("loginMsg");
+
+  if (!emailField || !passwordField || !loginMsg) {
+    console.error("Login form elements are missing.");
+    return;
+  }
+
+  const email = emailField.value.trim();
+  const password = passwordField.value;
 
   loginMsg.textContent = "";
 
@@ -1050,27 +1058,36 @@ async function login() {
   }
 
   try {
-    const { data, error } = await supabaseClient.auth.signInWithPassword({
-      email: email,
-      password: password
+    const { error } = await supabaseClient.auth.signInWithPassword({
+      email,
+      password
     });
 
     if (error) {
+      console.error("Supabase login error:", error);
       loginMsg.textContent = "Login failed. Check your email and password.";
       return;
     }
 
-    document.getElementById("login").classList.add("hidden");
-    document.getElementById("adminPanel").classList.remove("hidden");
+    const loginCard = document.getElementById("loginCard");
+    const adminPanel = document.getElementById("adminPanel");
+
+    if (!loginCard || !adminPanel) {
+      throw new Error("Login card or admin panel was not found.");
+    }
+
+    loginCard.classList.add("hidden");
+    adminPanel.classList.remove("hidden");
     loginMsg.textContent = "";
 
-    refresh();
-    loadSupabaseRegistrations();
+    await refresh();
+    await loadSupabaseRegistrations();
+
   } catch (error) {
     console.error("Login error:", error);
-    loginMsg.textContent = "Could not connect. Please try again.";
+    loginMsg.textContent = "Could not connect. Check the browser console.";
   }
-}
+};
 
 async function loadSupabaseRegistrations() {
   const message = document.getElementById("supabaseRegistrationMessage");
