@@ -2543,6 +2543,21 @@ async function recordLiveDelivery(action, value) {
       return;
     }
 
+    const oversDropdown = document.getElementById("liveTotalOvers");
+const selectedOvers = Number(
+oversDropdown?.value || liveTotalOvers || 6
+);
+
+const maximumLegalBalls = selectedOvers * 6;
+
+if (liveLegalBalls >= maximumLegalBalls) {
+showLiveScoringMessage(
+`Innings complete! The selected limit of ${selectedOvers} overs has been reached.`,
+true
+);
+return;
+}
+
     const striker = document.getElementById("liveStriker")?.value.trim();
     const nonStriker = document.getElementById("liveNonStriker")?.value.trim();
     const bowler = document.getElementById("liveBowler")?.value.trim();
