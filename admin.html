@@ -2177,6 +2177,7 @@ let liveInningsNumber = 1;
 let liveLegalBalls = 0;
 let liveTotalRuns = 0;
 let liveWickets = 0;
+let liveTotalOvers = 6;
 
 // Display messages in the Live Scoring panel.
 function showLiveScoringMessage(message, isError = false) {
@@ -2351,6 +2352,16 @@ async function startLiveInnings() {
     const matchId = document.getElementById("liveMatchSelect")?.value;
     const battingTeam = document.getElementById("liveBattingTeam")?.value;
     const bowlingTeam = document.getElementById("liveBowlingTeam")?.value;
+    const selectedOvers = Number(
+  document.getElementById("liveTotalOvers")?.value || 6
+);
+
+if (!Number.isInteger(selectedOvers) || selectedOvers < 1) {
+  showLiveScoringMessage("Please select a valid number of overs.", true);
+  return;
+}
+
+liveTotalOvers = selectedOvers;
 
     const striker = document.getElementById("liveStriker")?.value.trim();
     const nonStriker = document.getElementById("liveNonStriker")?.value.trim();
@@ -2391,15 +2402,16 @@ async function startLiveInnings() {
       const { data, error } = await supabaseClient
         .from("match_innings")
         .insert({
-          match_id: String(matchId),
-          innings_number: 1,
-          batting_team: battingTeam,
-          bowling_team: bowlingTeam,
-          total_runs: 0,
-          wickets: 0,
-          legal_balls: 0,
-          status: "in_progress"
-        })
+  match_id: String(matchId),
+  innings_number: 1,
+  batting_team: battingTeam,
+  bowling_team: bowlingTeam,
+  total_runs: 0,
+  wickets: 0,
+  legal_balls: 0,
+  total_overs: selectedOvers,
+  status: "in_progress"
+})
         .select()
         .single();
 
@@ -2417,6 +2429,12 @@ async function startLiveInnings() {
     }
 
     liveInningsId = innings.id;
+    liveTotalOvers = Number(innings.total_overs || selectedOvers);
+
+const oversDropdown = document.getElementById("liveTotalOvers");
+if (oversDropdown) {
+  oversDropdown.value = String(liveTotalOvers);
+}
     liveMatchId = String(matchId);
     liveInningsNumber = 1;
 
