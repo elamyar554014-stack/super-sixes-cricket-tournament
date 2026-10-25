@@ -2818,18 +2818,69 @@ async function finishLiveInnings() {
       const battingDropdown = document.getElementById("liveBattingTeam");
       const bowlingDropdown = document.getElementById("liveBowlingTeam");
 
-      if (battingDropdown && bowlingDropdown) {
-        battingDropdown.value = innings.bowling_team;
-        bowlingDropdown.value = innings.batting_team;
+    if (battingDropdown && bowlingDropdown) {
+  // Preserve the original team selections before changing either dropdown.
+  const firstBattingTeam = String(innings.batting_team);
+  const firstBowlingTeam = String(innings.bowling_team);
 
-        battingDropdown.dispatchEvent(new Event("change", {
-          bubbles: true
-        }));
+  // Find the actual option values that represent these teams.
+  function findTeamOption(select, teamValue) {
+    const expected = String(teamValue).trim();
 
-        bowlingDropdown.dispatchEvent(new Event("change", {
-          bubbles: true
-        }));
-      }
+    return Array.from(select.options).find(option =>
+      option.value.trim() === expected ||
+      option.textContent.trim() === expected
+    );
+  }
+
+  const newBattingOption = findTeamOption(
+    battingDropdown,
+    firstBowlingTeam
+  );
+
+  const newBowlingOption = findTeamOption(
+    bowlingDropdown,
+    firstBattingTeam
+  );
+
+  if (!newBattingOption || !newBowlingOption) {
+    console.error("Could not match teams in dropdowns.", {
+      firstBattingTeam,
+      firstBowlingTeam,
+      battingOptions: Array.from(battingDropdown.options).map(option => ({
+        value: option.value,
+        text: option.textContent.trim()
+      })),
+      bowlingOptions: Array.from(bowlingDropdown.options).map(option => ({
+        value: option.value,
+        text: option.textContent.trim()
+      }))
+    });
+
+    showLiveScoringMessage(
+      "Innings completed, but the team dropdowns could not be switched. Check the browser console.",
+      true
+    );
+
+    return;
+  }
+
+  battingDropdown.value = newBattingOption.value;
+  bowlingDropdown.value = newBowlingOption.value;
+
+  battingDropdown.dispatchEvent(
+    new Event("change", { bubbles: true })
+  );
+
+  bowlingDropdown.dispatchEvent(
+    new Event("change", { bubbles: true })
+  );
+
+  console.log("Teams switched for the second innings:", {
+    batting: battingDropdown.value,
+    bowling: bowlingDropdown.value
+  });
+}
 
       // Clear the player fields for the chasing innings.
       [
@@ -2894,6 +2945,7 @@ async function finishLiveInnings() {
     );
   }
 }
+  
 // Undo the most recent delivery.
 async function undoLastLiveDelivery() {
   try {
