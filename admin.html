@@ -2380,8 +2380,8 @@ async function startLiveInnings() {
     liveMatchId = String(matchId);
     liveInningsNumber = 1;
 
-    document.getElementById("nextStriker").value = striker;
-    document.getElementById("nextNonStriker").value = nonStriker;
+    document.getElementById("liveStriker").value = nonStriker;
+    document.getElementById("liveNonStriker").value = striker;
     document.getElementById("nextBowler").value = bowler;
 
     await reloadLiveDeliveries();
@@ -2464,6 +2464,7 @@ function renderLiveScore() {
       `Overs: ${Math.floor(liveLegalBalls / 6)}.${liveLegalBalls % 6}`;
   }
 }
+  
 function renderLiveBallHistory(deliveries) {
   const container = document.getElementById("liveBallHistory");
   if (!container) return;
