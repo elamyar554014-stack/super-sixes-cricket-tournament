@@ -2497,9 +2497,9 @@ async function recordLiveDelivery(action, value) {
       return;
     }
 
-    const striker = document.getElementById("nextStriker")?.value.trim();
-    const nonStriker = document.getElementById("nextNonStriker")?.value.trim();
-    const bowler = document.getElementById("nextBowler")?.value.trim();
+    const striker = document.getElementById("liveStriker")?.value.trim();
+    const nonStriker = document.getElementById("liveNonStriker")?.value.trim();
+    const bowler = document.getElementById("liveBowler")?.value.trim();
 
     if (!striker || !nonStriker || !bowler) {
       showLiveScoringMessage(
